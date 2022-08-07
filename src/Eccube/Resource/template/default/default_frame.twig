@@ -1,0 +1,320 @@
+<!doctype html>
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+<html lang="{{ eccube_config.locale }}">
+<head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# product: http://ogp.me/ns/product#">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="eccube-csrf-token" content="{{ csrf_token(constant('Eccube\\Common\\Constant::TOKEN_NAME')) }}">
+    <title>{{ BaseInfo.shop_name }}{% if subtitle is defined and subtitle is not empty %} / {{ subtitle }}{% elseif title is defined and title is not empty %} / {{ title }}{% endif %}</title>
+    {% if Page.author is not empty %}
+        <meta name="author" content="{{ Page.author }}">
+    {% endif %}
+    {% if Page.description is not empty %}
+        <meta name="description" content="{{ Page.description }}">
+    {% endif %}
+    {% if Page.keyword is not empty %}
+        <meta name="keywords" content="{{ Page.keyword }}">
+    {% endif %}
+    {% if Page.meta_robots is not empty %}
+        <meta name="robots" content="{{ Page.meta_robots }}">
+    {% endif %}
+    {% if Page.meta_tags is not empty %}
+        {{ include(template_from_string(Page.meta_tags)) }}
+    {% endif %}
+    <!-- <link rel="icon" href="{{ asset('assets/img/common/favicon.ico', 'user_data') }}"> -->
+    <link href="/assets/image/common/favicon_hinahina.svg" rel="icon" type="image/svg+xml">
+    <link href="/assets/image/common/favicon_hinahina.png" rel="icon alternate" type="image/png">
+    <link href="/assets/js/slick/slick.css" rel="stylesheet">
+    <link href="/assets/js/slick/slick-theme.css" rel="stylesheet">
+    <link href="/assets/js/lightbox/lightbox.css" rel="stylesheet">
+    <link href="/assets/js/vegas/vegas.min.css" rel="stylesheet">
+    <link href="/assets/css/style.css" rel="stylesheet">
+
+
+    {% block stylesheet %}{% endblock %}
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script>
+        $(function() {
+            $.ajaxSetup({
+                'headers': {
+                    'ECCUBE-CSRF-TOKEN': $('meta[name="eccube-csrf-token"]').attr('content')
+                }
+            });
+        });
+    </script>
+    {# Layout: HEAD #}
+    {% if Layout.Head %}
+        {{ include('block.twig', {'Blocks': Layout.Head}) }}
+    {% endif %}
+    {# プラグイン用styleseetやmetatagなど #}
+    {% if plugin_assets is defined %}{{ include('@admin/snippet.twig', { snippets: plugin_assets }) }}{% endif %}
+    <link rel="stylesheet" href="{{ asset('assets/css/customize.css', 'user_data') }}">
+
+<link rel="Stylesheet" type="text/css" href="/assets/css/wSelect.css" />
+
+
+</head>
+<body id="page_{{ app.request.get('_route') }}" class="{{ body_class|default('other_page') }}">
+{# Layout: BODY_AFTER #}
+{% if Layout.BodyAfter %}
+    {{ include('block.twig', {'Blocks': Layout.BodyAfter}) }}
+{% endif %}
+
+<div class="l-container">
+    <header class="c-header ">
+        <div class="c-header1">
+            <div class="c-navi2 effect-fade ">
+                <div class="c-navi2__menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="c-navi2__ttl1 btn-pagetop">
+                    <a href="/" class="btn_top">
+                        <div class="c-navi2__img1">
+                            <img src="/assets/image/common/logo-navi2.png" alt="ひな人形専門店　工房ひな雛">
+                        </div>
+                        <span>ひな人形専門店　工房ひな雛</span>
+                    </a>
+                </div>
+                <div class="c-navi2__bottom">
+                    <div class="c-navi2__network">
+                        <div class="c-navi2__insta">
+                            <a href="https://instagram.com/kobo_hinahina/" target="_blank">
+                                <img src="/assets/image/common/icon-instagram1.png" alt="instagram" class="img-black js-color1">
+                                <img src="/assets/image/common/icon-instagram1-white.png" alt="instagram" class="img-white js-color2">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="c-navi2__favorite">
+                        <a href="/ec4/mypage/favorite">
+                            <div class="c-navi2__img2">
+                                <img src="/assets/image/common/icon-favorite.png" alt="お気に入り" class="img-black">
+                                <img src="/assets/image/common/icon-favorite-white.png" alt="お気に入り" class="img-white">
+                            </div>
+                            <span>お気に入り</span>
+                        </a>
+                    </div>
+                    <div class="c-navi2__cart">
+                        <a href="/ec4/cart">
+                            <div class="c-navi2__img3">
+                                <img src="/assets/image/common/icon_add.svg" alt="買い物かご">
+                            </div>
+                            <span>買い物かご</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="c-header1__nav1">
+                <!-- <ul class="">
+                    <li><a href="#">伝えたいこと</a></li>
+                    <li><a href="#">こだわり</a></li>
+                    <li><a href="/ec4/products/list">商品一覧</a></li>
+                    <li><a href="#">セミオーダー</a></li>
+                    <li><a href="#">サンプル発送</a></li>
+                    <li><a href="#">カタログ請求</a></li>
+                    <li><a href="/ec4/mypage/">マイページ</a></li>
+                </ul> -->
+                <dl class="c-header1__nav1__dl pc-only">
+                    <dd>
+                        <ul>
+                            <li><a href="/">ホーム</a></li>
+                        </ul>
+                    </dd>
+                    <dt><span>私たちが伝えたいこと</span></dt>
+                    <dd>
+                        <ul>
+                            <li><a href="/tell/">雛人形の由来</a></li>
+                            <li><a href="/tell_thought/">ひな雛に込めた想い</a></li>
+                            <li><a href="/tell_thought2/">職人の想い</a></li>
+                            <li><a href="/tell_thing/">宝物のような時間</a></li>
+                        </ul>
+                    </dd>
+                    <dt><span>ひな雛のこだわり</span></dt>
+                    <dd>
+                        <ul>
+                            <li><a href="/kodawari/">伝統に忠実な製法と目に見えないこだわり</a></li>
+                            <li><a href="/kodawari_02/">モダンで華やかなお衣装</a></li>
+                            <li><a href="/kodawari_03/">愛くるしい可愛いお顔</a></li>
+                            <li><a href="/kodawari_04/">現代の住宅事情に合わせたサイズ</a></li>
+                        </ul>
+                    </dd>
+                    <dt><span>商品を探す</span></dt>
+                    <dd>
+                        <ul>
+                            <li><a href="/ec4/products/list">商品一覧</a></li>
+                            <li><a href="/semiorder/">セミオーダー</a></li>
+                            <li><a href="/sample/">サンプル発送</a></li>
+                            <li><a href="/catalog/">カタログ請求</a></li>
+                        </ul>
+                    </dd>
+                    <dt><span>ご案内</span></dt>
+                    <dd>
+                        <ul>
+                            <li><a href="/news/">お知らせ</a></li>
+                            <li><a href="/guide_by/">ご利用ガイド</a></li>
+                            <li><a href="https://kobohinahina.com/shopinfo/" target="_blank">店舗案内</a></li>
+                            <li><a href="/contact/">お問い合わせ</a></li>
+                        </ul>
+                    </dd>
+                </dl>
+                <dl class="c-header1__nav1__dl sp-only">
+                    <dd>
+                        <ul>
+                            <li><a href="/">ホーム</a></li>
+                        </ul>
+                    </dd>
+                    <dt><span>ひな雛をもっと知る</span></dt>
+                    <dd>
+                        <ul>
+                            <li><a href="/tell/">伝えたいこと</a></li>
+                            <li><a href="/kodawari/">こだわり</a></li>
+                        </ul>
+                    </dd>
+                    <dt><span>商品を探す</span></dt>
+                    <dd>
+                        <ul>
+                            <li class="">
+                                <a href="/ec4/products/list">商品一覧</a>
+                            </li>
+                            <li><a href="/semiorder/">セミオーダー</a></li>
+                            <li><a href="/sample/">サンプル発送</a></li>
+                            <li><a href="/catalog/">カタログ請求</a></li>
+                        </ul>
+                    </dd>
+                    <dt><span>ご案内</span></dt>
+                    <dd>
+                        <ul>
+<li><a href="/news/">お知らせ</a></li>
+                            <li><a href="/guide_buy/">ご利用ガイド</a></li>
+                            <li><a href="https://kobohinahina.com/shopinfo/" target="_blank">店舗案内</a></li>
+                            <li><a href="/contact/">お問い合わせ</a></li>
+                        </ul>
+                    </dd>
+                </dl>
+
+                <ul class="c-header1__nav1__list">
+                    <li><a href="/ec4/mypage/">マイページ</a></li>
+                    <li><a href="http://blog.kobohinahina.com/" target="_blank">ブログ</a></li>
+                    <li><a href="https://instagram.com/kobo_hinahina/" target="_blank">Instagram</a></li>
+                </ul>
+                <div class="c-header1__nav1__ban">
+                    <a href="https://gogatsu.kobohinahina.com/" target="_blank"><img src="/assets/image/common/header_ban.jpg" alt=""></a>
+                </div>
+            </div>
+            <div class="c-header1__logo">
+                <a href="/">
+                    <img src="/assets/image/common/logo.png" alt="ひな人形専門店　工房ひな雛">
+                </a>
+            </div>
+        </div>
+
+        <div class="c-header2 ">
+            <ul class="c-header2__nav1">
+                <li><a href="/tell/">伝えたいこと</a></li>
+                <li><a href="/kodawari/">こだわり</a></li>
+                <li class="">
+                    <a href="/ec4/products/list">商品一覧</a>
+                </li>
+                <li><a href="/semiorder/">セミオーダー</a></li>
+                <li><a href="/sample/">サンプル発送</a></li>
+                <li><a href="/catalog/">カタログ請求</a></li>
+                <li><a href="/ec4/mypage/">マイページ</a></li>
+            </ul>
+        </div>
+    </header>
+
+
+
+    {# Layout: CONTENTS_TOP #}
+    {% if Layout.ContentsTop %}
+        <div class="ec-layoutRole__contentTop">
+            {{ include('block.twig', {'Blocks': Layout.ContentsTop}) }}
+        </div>
+    {% endif %}
+
+        {# Layout: SIDE_LEFT #}
+        {% if Layout.SideLeft %}
+            <div class="ec-layoutRole__left">
+                {{ include('block.twig', {'Blocks': Layout.SideLeft}) }}
+            </div>
+        {% endif %}
+
+        {% set layoutRoleMain = 'ec-layoutRole__main' %}
+        {% if Layout.ColumnNum == 2 %}
+            {% set layoutRoleMain = 'ec-layoutRole__mainWithColumn' %}
+        {% elseif Layout.ColumnNum == 3 %}
+            {% set layoutRoleMain = 'ec-layoutRole__mainBetweenColumn' %}
+        {% endif %}
+
+        <div class="{{ layoutRoleMain }}">
+            {# Layout: MAIN_TOP #}
+            {% if Layout.MainTop %}
+                <div class="ec-layoutRole__mainTop">
+                    {{ include('block.twig', {'Blocks': Layout.MainTop}) }}
+                </div>
+            {% endif %}
+
+            {# MAIN AREA #}
+            {% block main %}{% endblock %}
+
+            {# Layout: MAIN_Bottom #}
+            {% if Layout.MainBottom %}
+                <div class="ec-layoutRole__mainBottom">
+                    {{ include('block.twig', {'Blocks': Layout.MainBottom}) }}
+                </div>
+            {% endif %}
+
+    {# Layout: CONTENTS_FOOTER #}
+    {% if Layout.Footer %}
+        <div class="ec-layoutRole__footer">
+            {{ include('block.twig', {'Blocks': Layout.Footer}) }}
+        </div>
+    {% endif %}
+
+
+
+
+<script src="/assets/js/jquery-migrate-3.0.1.min.js"></script>
+<script src="/assets/js/slick/slick.min.js"></script>
+<script src="/assets/js/lightbox/lightbox.js"></script>
+<script src="/assets/js/jquery.bxslider.min.js"></script>
+<script src="/assets/js/vegas/vegas.min.js"></script>
+<script src="/assets/js/functions.js"></script>
+
+
+{% include('@common/lang.twig') %}
+<script src="{{ asset('assets/js/function.js') }}"></script>
+<script src="{{ asset('assets/js/eccube.js') }}"></script>
+{% block javascript %}{% endblock %}
+{# Layout: CLOSE_BODY_BEFORE #}
+{% if Layout.CloseBodyBefore %}
+    {{ include('block.twig', {'Blocks': Layout.CloseBodyBefore}) }}
+{% endif %}
+{# プラグイン用Snippet #}
+{% if plugin_snippets is defined %}
+    {{ include('snippet.twig', { snippets: plugin_snippets }) }}
+{% endif %}
+
+
+<script type="text/javascript" src="/assets/js/wSelect.js"></script>
+
+<script type="text/javascript">
+$('#classcategory_id1').wSelect();
+</script>
+
+
+
+    <script src="{{ asset('assets/js/customize.js', 'user_data') }}"></script>
+</body>
+</html>

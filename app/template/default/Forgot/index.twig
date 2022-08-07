@@ -1,0 +1,73 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends 'default_frame.twig' %}
+
+{% form_theme form 'Form/form_div_layout.twig' %}
+
+{% block main %}
+
+<link rel="stylesheet" href="/ec4/html/template/default/assets/css/style.css">
+
+<div class="l-wrap">
+    <div class="l-naviPage"></div>
+    <div class="l-main">
+        <main class="p-login cart_top">
+
+
+            <section class="p-login_sc01">
+                <div class="l-cont">
+                    <div class="c-block01">
+                        <h2 class="c-block01_ttl">{{ 'パスワードの再発行'|trans }}</h2>
+                   </div><!-- End c-block01-->
+
+
+
+    <div class="ec-forgotRole">
+        <form name="form1" id="form1" method="post" action="{{ url('forgot') }}">
+            {{ form_widget(form._token) }}
+            <div class="ec-off1Grid">
+                <div class="ec-off1Grid__cell">
+                    <div class="ec-forgotRole__form">
+                        <div class="ec-forgotRole__intro">
+                            <p class="ec-para-normal">{{ 'ご登録時のメールアドレスを入力して「次へ」ボタンをクリックしてください。'|trans }}</p>
+                            <p class="ec-para-normal">{{ '※パスワード再発行メールを送信します。メールの内容をご確認の上、新しいパスワードを登録してください。'|trans }}</p>
+                        </div>
+                        <div class="ec-borderedDefs">
+                            <dl>
+                                <dt>
+                                    {{ form_label(form.login_email, 'メールアドレス', { 'label_attr': { 'class': 'ec-label' }}) }}
+                                </dt>
+                                <dd>
+                                    <div class="ec-input{{ has_errors(form.login_email) ? ' error' }}">
+                                        {{ form_widget(form.login_email) }}
+                                        {{ form_errors(form.login_email) }}
+                                    </div>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ec-off4Grid">
+                <div class="ec-off4Grid__cell">
+                    <button type="submit" class="ec-blockBtn--action">{{ '次へ'|trans }}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+                </div>
+            </section><!-- End p-login_sc01-->
+        </main><!-- End p-login-->
+    </div><!-- End l-main-->
+</div><!-- End l-wrap-->
+
+{% endblock %}

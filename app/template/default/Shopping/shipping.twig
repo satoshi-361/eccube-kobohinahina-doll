@@ -1,0 +1,95 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends 'default_frame.twig' %}
+
+{% block main %}
+
+<link rel="stylesheet" href="/ec4/html/template/default/assets/css/style.css">
+
+<div class="l-wrap">
+    <div class="l-naviPage"></div>
+    <div class="l-main">
+        <main class="p-login cart_top">
+
+
+            <section class="p-login_sc01">
+                <div class="l-cont">
+                    <div class="c-block01">
+
+                <h2 class="c-block01_ttl">{{ 'お届け先の指定'|trans }}</h2>
+                    </div><!-- End c-block01-->
+
+
+
+    <div class="ec-registerRole">
+        <div class="ec-off1Grid">
+            <div class="ec-off1Grid__cell">
+                <div class="ec-addressRole">
+                    {% if Customer.CustomerAddresses|length < eccube_config.eccube_deliv_addr_max %}
+                        <div class="ec-addressRole__actions"><a class="ec-inlineBtn" href="{{ url('shopping_shipping_edit', {'id': shippingId}) }}">{{ '新規お届け先を追加する'|trans }}</a></div>
+                    {% else %}
+                        <div class="ec-alert-warning">
+                            <div class="ec-alert-warning__text">
+                                <div class="ec-alert-warning__icon"><img src="{{ asset('assets/icon/exclamation-white.svg') }}"/></div>
+                                {{ 'お届け先登録の上限の%count%件に達しています。お届け先を入力したい場合は、削除か変更を行ってください。'|trans({ '%count%': eccube_config.eccube_deliv_addr_max }) }}
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if has_errors(form.addresses) %}
+                        <div class="ec-alert-warning">
+                            <div class="ec-alert-warning__text">
+                                <div class="ec-alert-warning__icon"><img src="{{ asset('assets/icon/exclamation-white.svg') }}"/></div>
+                                {{ 'お届け先を指定してください'|trans }}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <form method="post" action="{{ url('shopping_shipping', {'id': shippingId}) }}">
+                    {{ form_widget(form._token) }}
+                    <div class="ec-addressList">
+                        {% for choice in form.addresses.vars.choices %}
+                            {% set Address = choice.data %}
+                        <div class="ec-addressList__item">
+                            <div class="ec-addressList__remove">
+                                {% set checked = choice is selectedchoice(form.addresses.vars.value) ? 'checked="checked"' : '' %}
+                                <input type="radio" id="address{{ choice.value }}" name="{{ form.addresses.vars.full_name }}" value="{{ choice.value }}" {{ checked }} />
+                            </div>
+                            <div class="ec-addressList__address">
+                                <div>{{ Address.name01 }}&nbsp;{{ Address.name02 }}</div>
+                                <div>〒{{ Address.postal_code }} {{ Address.Pref }}{{ Address.addr01 }}{{ Address.addr02 }}</div>
+                                <div>{{ Address.phone_number }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="ec-registerRole__actions">
+                        <div class="ec-off4Grid">
+                            <div class="ec-off4Grid__cell">
+                                <button type="submit" class="btn__action btn__size-s btn">{{ '選択したお届け先に送る'|trans }}</button>
+                                <a class="btn__cancel btn__size-s btn mt8" href="{{ url('shopping') }}">{{ '戻る'|trans }}</a>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+                </div>
+            </section><!-- End p-login_sc01-->
+        </main><!-- End p-login-->
+    </div><!-- End l-main-->
+</div><!-- End l-wrap-->
+{% endblock %}

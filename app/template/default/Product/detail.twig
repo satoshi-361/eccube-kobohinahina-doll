@@ -1,0 +1,855 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends 'default_frame.twig' %}
+
+{% set body_class = 'page-products_detail' %}
+
+{% block stylesheet %}
+    <style>
+
+        .slick-slider {
+            /*margin-bottom: 30px;*/
+        }
+
+        .slick-dots {
+            position: absolute;
+            bottom: -45px;
+            display: block;
+            width: 100%;
+            padding: 0;
+            list-style: none;
+            text-align: center;
+        }
+
+        .slick-dots li {
+            position: relative;
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin: 0 5px;
+            padding: 0;
+
+            cursor: pointer;
+        }
+
+        .slick-dots li button {
+            font-size: 0;
+            line-height: 0;
+            display: block;
+            width: 20px;
+            height: 20px;
+            padding: 5px;
+            cursor: pointer;
+            color: transparent;
+            border: 0;
+            outline: none;
+            background: transparent;
+        }
+
+        .slick-dots li button:hover,
+        .slick-dots li button:focus {
+            outline: none;
+        }
+
+        .slick-dots li button:hover:before,
+        .slick-dots li button:focus:before {
+            opacity: 1;
+        }
+
+        .slick-dots li button:before {
+            content: " ";
+            line-height: 20px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 12px;
+            height: 12px;
+            text-align: center;
+            opacity: .25;
+            background-color: black;
+            border-radius: 50%;
+
+        }
+
+        .slick-dots li.slick-active button:before {
+            opacity: .75;
+            background-color: black;
+        }
+
+        .slick-dots li button.thumbnail img {
+            width: 0;
+            height: 0;
+        }
+
+    </style>
+{% endblock %}
+
+{% block javascript %}
+    <script>
+        eccube.classCategories = {{ class_categories_as_json(Product)|raw }};
+
+        // 規格2に選択肢を割り当てる。
+        function fnSetClassCategories(form, classcat_id2_selected) {
+            var $form = $(form);
+            var product_id = $form.find('input[name=product_id]').val();
+            var $sele1 = $form.find('select[name=classcategory_id1]');
+            var $sele2 = $form.find('select[name=classcategory_id2]');
+            eccube.setClassCategories($form, product_id, $sele1, $sele2, classcat_id2_selected);
+        }
+
+        {% if form.classcategory_id2 is defined %}
+        fnSetClassCategories(
+            $('#form1'), {{ form.classcategory_id2.vars.value|json_encode|raw }}
+        );
+        {% elseif form.classcategory_id1 is defined %}
+        eccube.checkStock($('#form1'), {{ Product.id }}, {{ form.classcategory_id1.vars.value|json_encode|raw }}, null);
+        {% endif %}
+    </script>
+    <script>
+        $(function() {
+            // bfcache無効化
+            $(window).bind('pageshow', function(event) {
+                if (event.originalEvent.persisted) {
+                    location.reload(true);
+                }
+            });
+
+            $('.item_visual').slick({
+                dots: false,
+                arrows: false,
+                responsive: [{
+                    breakpoint: 768,
+                    settings: {
+                        dots: true
+                    }
+                }]
+            });
+
+            $('.slideThumb').on('click', function() {
+                var index = $(this).attr('data-index');
+                $('.item_visual').slick('slickGoTo', index, false);
+            })
+        });
+    </script>
+    <script>
+        $(function() {
+            $('.add-cart').on('click', function(event) {
+                {% if form.classcategory_id1 is defined %}
+                // 規格1フォームの必須チェック
+                if ($('#classcategory_id1').val() == '__unselected' || $('#classcategory_id1').val() == '') {
+                    //$('#classcategory_id1_alert')[0].setCustomValidity('{{ 'ご購入の場合は、お顔を選択の上買い物かごに追加してください。'|trans }}');
+                    alert("{{ 'ご購入の場合は、お顔を選択の上買い物かごに追加してください。'|trans }}");
+                    return false;
+                } else {
+                    $('#classcategory_id1_alert')[0].setCustomValidity('');
+                }
+                {% endif %}
+
+                {% if form.classcategory_id2 is defined %}
+                // 規格2フォームの必須チェック
+                if ($('#classcategory_id2').val() == '__unselected' || $('#classcategory_id2').val() == '') {
+                    $('#classcategory_id2')[0].setCustomValidity('{{ '項目が選択されていません'|trans }}');
+                    return true;
+                } else {
+                    $('#classcategory_id2')[0].setCustomValidity('');
+                }
+                {% endif %}
+
+                // 個数フォームのチェック
+                if ($('#quantity').val() < 1) {
+                    $('#quantity')[0].setCustomValidity('{{ '1以上で入力してください。'|trans }}');
+                    return true;
+                } else {
+                    $('#quantity')[0].setCustomValidity('');
+                }
+
+                event.preventDefault();
+                $form = $('#form1');
+                $.ajax({
+                    url: $form.attr('action'),
+                    type: $form.attr('method'),
+                    data: $form.serialize(),
+                    dataType: 'json',
+                    beforeSend: function(xhr, settings) {
+                        // Buttonを無効にする
+                        $('.add-cart').prop('disabled', true);
+                    }
+                }).done(function(data) {
+                    // レスポンス内のメッセージをalertで表示
+                    $.each(data.messages, function() {
+                        $('#ec-modal-header').html(this);
+                    });
+
+                    $('#ec-modal-checkbox').prop('checked', true);
+
+                    // カートブロックを更新する
+                    $.ajax({
+                        url: "{{ url('block_cart') }}",
+                        type: 'GET',
+                        dataType: 'html'
+                    }).done(function(html) {
+                        $('.ec-headerRole__cart').html(html);
+                    });
+                }).fail(function(data) {
+                    alert('{{ 'カートへの追加に失敗しました。'|trans }}');
+                }).always(function(data) {
+                    // Buttonを有効にする
+                    $('.add-cart').prop('disabled', false);
+                });
+            });
+
+
+
+$('.wSelect').on('click', function() {
+$('.button_choose_out').toggleClass("show");
+});
+$('.wSelect-option').on('click', function() {
+$('.button_choose_out').toggleClass("show");
+});
+
+        });
+    </script>
+{% endblock %}
+
+{% block main %}
+
+<style>
+{% for ProductImage in Product.ProductImage %}
+
+
+.p-products_detail .c-slider_item:nth-child({{ loop.index }}) {
+  background-image: url({{ asset(ProductImage, 'save_image') }}); }
+
+{% else %}
+{% endfor %}
+
+
+
+  @media screen and (max-width: 767px) {
+
+{% if TabaCustomFieldsProduct('top_sp1', Product.id) %}
+    .p-products_detail .c-slider_item:nth-child(1) {
+      background-image: url({{TabaCustomFieldsProduct('top_sp1', Product.id)}}); }
+{% endif %}
+{% if TabaCustomFieldsProduct('top_sp2', Product.id) %}
+    .p-products_detail .c-slider_item:nth-child(2) {
+      background-image: url({{TabaCustomFieldsProduct('top_sp2', Product.id)}}); }
+{% endif %}
+{% if TabaCustomFieldsProduct('top_sp3', Product.id) %}
+    .p-products_detail .c-slider_item:nth-child(3) {
+      background-image: url({{TabaCustomFieldsProduct('top_sp3', Product.id)}}); }
+{% endif %}
+{% if TabaCustomFieldsProduct('top_sp4', Product.id) %}
+    .p-products_detail .c-slider_item:nth-child(4) {
+      background-image: url({{TabaCustomFieldsProduct('top_sp4', Product.id)}}); }
+{% endif %}
+{% if TabaCustomFieldsProduct('top_sp5', Product.id) %}
+    .p-products_detail .c-slider_item:nth-child(5) {
+      background-image: url({{TabaCustomFieldsProduct('top_sp5', Product.id)}}); }
+{% endif %}
+
+  }
+
+
+
+
+
+</style>
+
+<div class="l-wrap">
+    <div class="l-naviPage"></div>
+    <main class="l-main p-products_detail">
+        <section class="c-mainimg">
+            <div class="c-slider">
+
+            {% for ProductImage in Product.ProductImage %}
+                <div class="c-slider_item"></div>
+            {% else %}
+            {% endfor %}
+            </div>
+            <div class="c-mainimg_inner">
+                <h2 class="c-mainimg_text"></h2>
+            </div>
+        </section><!-- End c-mainimg-->
+
+        <div class="c-breadcrumb">
+            <ul class="c-breadcrumb_list">
+                <li class="c-breadcrumb_item"><a href="/"><span>ホーム</span></a></li>
+                <li class="c-breadcrumb_item"><a href="/ec4/products/list"><span>商品一覧</span></a></li>
+                <li class="c-breadcrumb_item"><span>{{ Product.name }} {{TabaCustomFieldsProduct('kana', Product.id)}}</span></li>
+            </ul>
+        </div><!-- End breadcrumb-->
+
+
+
+                        <form action="{{ url('product_add_favorite', {id:Product.id}) }}" method="post">
+        <section class="p-products_detail_sc01">
+            <div class="l-cont">
+<div class="p-products_detail_sc01_wrap">
+                <h2 class="c-tit04">
+                    <span class="c-tit04_jap">{{ Product.name }}</span>
+                    <span class="c-tit04_eng">{{TabaCustomFieldsProduct('kana', Product.id)}}</span>
+
+
+                </h2>
+                <p class="c-block01_txt">{{ Product.description_detail|raw|nl2br }}</p>
+                <p class="c-price">
+                    <span class="c-price_num">{{ Product.getPrice02IncTaxMin|number_format }}</span>円<span class="c-price_tax">(税込)</span>
+                    {% if BaseInfo.option_favorite_product %}
+{% if is_favorite == false %}
+<button type="submit" id="favorite" class="c-price_heart"></button>
+                                {% else %}
+<button type="submit" id="favorite" class="c-price_heart_2" disabled="disabled"></button>
+                                {% endif %}
+                        </form>
+                    {% endif %}
+                </p>
+
+</div>
+
+                    <form action="{{ url('product_add_cart', {id:Product.id}) }}" method="post" id="form1" name="form1">
+                <div class="p-products_detail_infor">
+                    <div class="infor_dt_l">
+                        <div class="infor_dt_wrap">
+                            <div class="infor_dt_in"><span class="text_ttl">商品コード</span></div>
+                            <p class="text_dt">{{ Product.code_min }}{% if Product.code_min != Product.code_max %} ～ {{ Product.code_max }}{% endif %}</p>
+                        </div>
+                        <div class="infor_dt_wrap">
+                            <div class="infor_dt_in"><span class="text_ttl">商品名</span></div>
+                            <p class="text_dt">{{ Product.name }}</p>
+                        </div>
+
+{% if TabaCustomFieldsProduct('clo_type', Product.id) %}
+
+                        <div class="infor_dt_wrap">
+                            <div class="infor_dt_in"><span class="text_ttl">衣装タイプ</span></div>
+                            <p class="text_dt">{{TabaCustomFieldsProduct('clo_type', Product.id)}}</p>
+                        </div>
+
+{% endif %}
+
+{% if TabaCustomFieldsProduct('size1_1', Product.id) %}
+
+                        <div class="infor_dt_wrap">
+                            <div class="infor_dt_in"><span class="text_ttl">セットサイズ</span></div>
+                            <p class="text_dt">幅{{TabaCustomFieldsProduct('size1_1', Product.id)}}cm・奥行き{{TabaCustomFieldsProduct('size1_2', Product.id)}}cm・高さ{{TabaCustomFieldsProduct('size1_3', Product.id)}}cm</p>
+                        </div>
+
+{% endif %}
+
+{% if TabaCustomFieldsProduct('doll_go', Product.id) %}
+
+                        <div class="infor_dt_wrap">
+                            <div class="infor_dt_in"><span class="text_ttl">親王様お人形サイズ</span></div>
+                            <p class="text_dt">{{TabaCustomFieldsProduct('doll_go', Product.id)}}</p>
+                        </div>
+
+{% endif %}
+
+
+                    </div><!-- End infor_dt_l-->
+                    <div class="infor_dt_r">
+
+{% if TabaCustomFieldsProduct('size_s_l', Product.id) %}
+
+                        <div class="infor_dt_wrap">
+                            <div class="infor_dt_in"><span class="text_ttl">梱包サイズ</span></div>
+                            <p class="text_dt">{{TabaCustomFieldsProduct('size_s_l', Product.id)}}</p>
+                            <p class="text_dt">※セミオーダー等にて商品の組み合わせが変わった場合、別途アクリルケースをご注文頂いた場合、又配送上の都合により、上記配送区分とは異なるサイズでの配送となる可能性がございます。予めご了承ください。</p>
+
+                        </div>
+
+{% endif %}
+
+
+{% if TabaCustomFieldsProduct('face_status', Product.id) %}
+
+                        <div class="infor_dt_wrap">
+                            <div class="infor_dt_in"><span class="text_ttl">本商品のお顔</span></div>
+
+
+                            <div class="text_img">
+
+                            {% if TabaCustomFieldsProduct('face_status', Product.id) == 'かわいい顔立ちの【優】' %}
+                                <div class="img">
+                                <img src="/assets/image/hinahina/products_detail/hinahina_products_face_2_yu.jpg" alt="かわいい顔立ちの【優】"></div>
+                                <div class="txt"><p class="text_dt">かわいい<br class="sp-only">顔立ちの【優】</p></div>
+	                          {% endif %}
+                            {% if TabaCustomFieldsProduct('face_status', Product.id) == '凛々しい顔立ちの【凛】' %}
+                                <div class="img">
+                                <img src="/assets/image/hinahina/products_detail/hinahina_products_face_1_rin.jpg" alt="凛々しい顔立ちの【凛】"></div>
+                                <div class="txt"><p class="text_dt">凛々しい<br class="sp-only">顔立ちの【凛】</p></div>
+	                          {% endif %}
+                            {% if TabaCustomFieldsProduct('face_status', Product.id) == '和風な装いの【和】' %}
+                                <div class="img">
+                                <img src="/assets/image/hinahina/products_detail/hinahina_products_face_4_wa.jpg" alt="和風な装いの【和】"></div>
+                                <div class="txt"><p class="text_dt">和風な<br class="sp-only">装いの【和】</p></div>
+	                          {% endif %}
+                            {% if TabaCustomFieldsProduct('face_status', Product.id) == '美しく可愛らしい顔立ちの【麗】' %}
+                                <div class="img">
+                                <img src="/assets/image/hinahina/products_detail/hinahina_products_face_5_urara.jpg" alt="美しく可愛らしい顔立ちの【麗】"></div>
+                                <div class="txt"><p class="text_dt">美しく可愛らしい<br class="sp-only">顔立ちの【麗】</p></div>
+	                          {% endif %}
+                            {% if TabaCustomFieldsProduct('face_status', Product.id) == '花のように明るい顔立ちの【花】' %}
+                                <div class="img">
+                                <img src="/assets/image/hinahina/products_detail/hinahina_products_face_6_hana.jpg" alt="花のように明るい顔立ちの【花】"></div>
+                                <div class="txt"><p class="text_dt">花のように明るい<br class="sp-only">顔立ちの【花】</p></div>
+	                          {% endif %}
+                            {% if TabaCustomFieldsProduct('face_status', Product.id) == '明るい顔立ちの【陽】' %}
+                                <div class="img">
+                                <img src="/assets/image/hinahina/products_detail/hinahina_products_face_3_you.jpg" alt="明るい顔立ちの【陽】"></div>
+                                <div class="txt"><p class="text_dt">明るい<br class="sp-only">顔立ちの【陽】</p></div>
+	                          {% endif %}
+                            {% if TabaCustomFieldsProduct('face_status', Product.id) == '優しい顔立ちの【愛】' %}
+                                <div class="img">
+                                <img src="/assets/image/hinahina/products_detail/hinahina_products_face_7_ai.jpg" alt="優しい顔立ちの【愛】"></div>
+                                <div class="txt"><p class="text_dt">優しい<br class="sp-only">顔立ちの【愛】</p></div>
+	                          {% endif %}
+                            {% if TabaCustomFieldsProduct('face_status', Product.id) == 'やわらかい顔立ちの【雅】' %}
+                                <div class="img">
+                                <img src="/assets/image/hinahina/products_detail/hinahina_products_face_8_miyabi.jpg" alt="やわらかい顔立ちの【雅】"></div>
+                                <div class="txt"><p class="text_dt">やわらかい<br class="sp-only">顔立ちの【雅】</p></div>
+	                          {% endif %}
+                            </div>
+                        </div>
+                        <div class="infor_dt_wrap infor_dt_wrap--nottl">
+                            <p class="text_dt">※ひな雛ではお人形のお顔の選択が可能です。お顔については<a href="/kodawari_03" target="_blank">こちら</a>をご確認ください。<br><span style="color:#ff0000;">※お顔と髪型はセットになります。予めご了承ください。</span>
+                            <br><span style="color:#ff0000;">※お人形のお顔を選択のうえ、ご購入願います。</span></p>
+                        </div>
+
+{% endif %}
+
+
+                        {% if Product.stock_find %}
+
+                                {% if form.classcategory_id1 is defined %}
+
+
+                        <div class="infor_dt_wrap">
+                            <div class="button_choose">
+                                <div class="button_choose_out">
+
+                                        {{ form_widget(form.classcategory_id1) }}
+                                        {{ form_errors(form.classcategory_id1) }}
+                                    {% if form.classcategory_id2 is defined %}
+                                            {{ form_widget(form.classcategory_id2) }}
+                                            {{ form_errors(form.classcategory_id2) }}
+                                    {% endif %}
+
+
+                                </div>
+                                <select id="classcategory_id1_alert"></select>
+
+                            </div>
+                        </div>
+                                {% endif %}
+                        {% endif %}
+
+                    </div><!-- End infor_dt_r-->
+                </div><!-- End p-products_detail_infor-->
+
+{% set test = "" %}
+{% for ProductClass in Product.ProductClasses %}
+  {% if ProductClass.stock_unlimited == "1" %}
+  {% set test = ProductClass.stock_unlimited %}
+  {% endif %}
+{% endfor %}
+
+                        {% if test == "1" %}
+
+
+                <div class="p-products_detail_total" id="put-of-stock_id">
+                    <div class="total_l put-of-stock">
+                        <p class="total_l_infor">単品商品の購入はできません</p>
+                    </div>
+                    <div class="total_r put-of-stock">
+                        <a class="total_r_guide" href="/guide_buy/">ご利用ガイド</a>
+                        <a class="total_r_guide total_r_contact" href="/contact/">お問い合わせ</a>
+                    </div>
+                </div><!-- End p-products_detail_total-->
+
+
+
+
+                        {% elseif Product.stock_find %}
+                <div class="p-products_detail_total" id="stocking_id">
+                    <div class="total_l">
+                        <p class="c-price">
+                            <span class="c-price_num">{{ Product.getPrice02IncTaxMin|number_format }}</span>円<span class="c-price_tax">(税込)</span></p>
+                        <p class="total_amount">数量<span class="total_num">
+                                    {{ form_widget(form.quantity) }}
+                                    {{ form_errors(form.quantity) }}
+                          </span></p>
+                    </div>
+                    <div class="total_r">
+                        <div class="c-btn_add">
+                            <div class="c-btn_add_out">
+
+                                <button type="submit" class="ec-blockBtn--action add-cart">
+                                    {{ '買い物かごに入れる'|trans }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                        {{ form_rest(form) }}
+
+
+                        {% else %}
+
+
+                <div class="p-products_detail_total" id="put-of-stock_id">
+                    <div class="total_l put-of-stock">
+                        <p class="total_l_infor">申し訳ございませんが、<br class="sp-only">只今品切れ中です。</p>
+                    </div>
+                    <div class="total_r put-of-stock">
+                        <a class="total_r_guide" href="/guide_buy/">ご利用ガイド</a>
+                        <a class="total_r_guide total_r_contact" href="/contact/">お問い合わせ</a>
+                    </div>
+
+
+                        {% endif %}
+
+                    </div>
+                </div><!-- End p-products_detail_total-->
+
+    </form>
+        </section><!-- End p-products_detail_sc01-->
+
+
+ {% set hasCategory = false %}
+ {% for ProductCategory in Product.ProductCategories %}
+      {% if ProductCategory.Category.id == 23 %}
+         {% set hasCategory = true %}
+      {% endif %}
+ {% endfor %}
+
+ {% if hasCategory %}
+
+ {% else %}
+
+                        {% if not test == "1" %}
+
+        <section class="p-products_detail_sc02 u-bg01">
+            <div class="l-cont">
+                <h2 class="c-tit02">商品詳細</h2>
+                <ul class="list_option" id="product-links">
+                    <li class="tab-show">
+                        <a href="javascript:void(0)" onclick="openProductTab(this, '#product-detail')">{{TabaCustomFieldsProduct('sub_title_1', Product.id)}}</a>
+                    </li>
+                    <li><a href="javascript:void(0)" onclick="openProductTab(this, '#product-costume')">{{TabaCustomFieldsProduct('sub_title_2', Product.id)}}</a></li>
+                    <li><a href="javascript:void(0)" onclick="openProductTab(this, '#product-face')">{{TabaCustomFieldsProduct('sub_title_3', Product.id)}}</a></li>
+                    <li><a href="javascript:void(0)" onclick="openProductTab(this, '#product-content')">{{TabaCustomFieldsProduct('sub_title_4', Product.id)}}</a></li>
+                    <li><a href="javascript:void(0)" onclick="openProductTab(this, '#product-composition')">構成品</a></li>
+                    <li><a href="javascript:void(0)" onclick="openProductTab(this, '#product-benefits')">ご購入の特典</a></li>
+                </ul><!-- End list_option-->
+
+                <div class="p-products_detail_tab">
+                    <div class="sc01 product-tab show" id="product-detail">
+                        <div class="sc01_img">
+                            <a class="img_zoom js-product-zoom" data-lightbox="product-zoom" href="">
+                                <div class="img_thumnail">
+                                    <div class="img_slider js-product-img">
+                                    {% if TabaCustomFieldsProduct('sub_img_1', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_1', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    {% if TabaCustomFieldsProduct('sub_img_1_1', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_1_1', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    {% if TabaCustomFieldsProduct('sub_img_1_2', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_1_2', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    {% if TabaCustomFieldsProduct('sub_img_1_3', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_1_3', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    {% if TabaCustomFieldsProduct('sub_img_1_4', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_1_4', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    {% if TabaCustomFieldsProduct('sub_img_1_5', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_1_5', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    {% if TabaCustomFieldsProduct('sub_img_1_6', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_1_6', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+
+                                    </div>
+                                </div>
+                            </a>
+
+                            <ul class="c-navi">
+                                <li class="c-navi_l1">
+                                    <a href="javascript:void(0)" class="js-product-prev"><img src="/assets/image/common/navi_l1.png" alt="navi"></a>
+                                </li>
+                                <li class="c-navi_c">
+                                    <span class="js-product-current">0</span> / <span class="js-product-total">0</span>
+                                </li>
+                                <li class="c-navi_r2">
+                                    <a href="javascript:void(0)" class="js-product-next"><img src="/assets/image/common/navi_r2.png" alt="navi"></a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="sc01_txt">
+                            {{TabaCustomFieldsProduct('sub_comment_1', Product.id)|raw|nl2br}}
+                        </div>
+                    </div><!-- End sc01-->
+
+                    <div class="sc01 product-tab" id="product-costume">
+                        <div class="sc01_img">
+                            <a class="img_zoom js-product-zoom" data-lightbox="product-zoom" href="">
+                                <div class="img_thumnail">
+                                    <div class="img_slider js-product-img">
+                                    {% if TabaCustomFieldsProduct('sub_img_2', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_2', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    {% if TabaCustomFieldsProduct('sub_img_2_1', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_2_1', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    </div>
+                                </div>
+                            </a>
+                            <ul class="c-navi">
+                                <li class="c-navi_l1">
+                                    <a href="javascript:void(0)" class="js-product-prev"><img src="/assets/image/common/navi_l1.png" alt="navi"></a>
+                                </li>
+                                <li class="c-navi_c">
+                                    <span class="js-product-current">0</span> / <span class="js-product-total">0</span>
+                                </li>
+                                <li class="c-navi_r2">
+                                    <a href="javascript:void(0)" class="js-product-next"><img src="/assets/image/common/navi_r2.png" alt="navi"></a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="sc01_txt">
+                            {{TabaCustomFieldsProduct('sub_comment_2', Product.id)|raw|nl2br}}
+                        </div>
+                    </div><!-- End sc01-->
+
+                    <div class="sc01 product-tab" id="product-face">
+                        <div class="sc01_img">
+                            <a class="img_zoom js-product-zoom" data-lightbox="product-zoom" href="">
+                                <div class="img_thumnail">
+                                    <div class="img_slider js-product-img">
+                                    {% if TabaCustomFieldsProduct('sub_img_3', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_3', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    {% if TabaCustomFieldsProduct('sub_img_3_1', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_3_1', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    {% if TabaCustomFieldsProduct('sub_img_3_2', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_3_2', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    </div>
+                                </div>
+                            </a>
+                            <ul class="c-navi">
+                                <li class="c-navi_l1">
+                                    <a href="javascript:void(0)" class="js-product-prev"><img src="/assets/image/common/navi_l1.png" alt="navi"></a>
+                                </li>
+                                <li class="c-navi_c">
+                                    <span class="js-product-current">0</span> / <span class="js-product-total">0</span>
+                                </li>
+                                <li class="c-navi_r2">
+                                    <a href="javascript:void(0)" class="js-product-next"><img src="/assets/image/common/navi_r2.png" alt="navi"></a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="sc01_txt">
+                            {{TabaCustomFieldsProduct('sub_comment_3', Product.id)|raw|nl2br}}
+                        </div>
+                    </div><!-- End sc01-->
+
+                    <div class="sc01 product-tab" id="product-content">
+                        <div class="sc01_img">
+                            <a class="img_zoom js-product-zoom" data-lightbox="product-zoom" href="">
+                                <div class="img_thumnail">
+                                    <div class="img_slider js-product-img">
+                                    {% if TabaCustomFieldsProduct('sub_img_4', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_4', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    {% if TabaCustomFieldsProduct('sub_img_4_1', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_4_1', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    {% if TabaCustomFieldsProduct('sub_img_4_2', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_4_2', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    {% if TabaCustomFieldsProduct('sub_img_4_3', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_4_3', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    {% if TabaCustomFieldsProduct('sub_img_4_4', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_4_4', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    {% if TabaCustomFieldsProduct('sub_img_4_5', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_4_5', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    {% if TabaCustomFieldsProduct('sub_img_4_6', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_4_6', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    {% if TabaCustomFieldsProduct('sub_img_4_7', Product.id) %}
+                                        <div class="img_item">
+                                            <img src="{{TabaCustomFieldsProduct('sub_img_4_7', Product.id)}}">
+                                        </div>
+                                    {% endif %}
+                                    </div>
+                                </div>
+                            </a>
+                            <ul class="c-navi">
+                                <li class="c-navi_l1">
+                                    <a href="javascript:void(0)" class="js-product-prev"><img src="/assets/image/common/navi_l1.png" alt="navi"></a>
+                                </li>
+                                <li class="c-navi_c">
+                                    <span class="js-product-current">0</span> / <span class="js-product-total">0</span>
+                                </li>
+                                <li class="c-navi_r2">
+                                    <a href="javascript:void(0)" class="js-product-next"><img src="/assets/image/common/navi_r2.png" alt="navi"></a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="sc01_txt">
+                            {{TabaCustomFieldsProduct('sub_comment_4', Product.id)|raw|nl2br}}
+                        </div>
+                    </div><!-- End sc01-->
+
+                    <div class="sc01 product-tab" id="product-composition">
+
+                    </div><!-- End sc01-->
+
+                    <div class="sc01 product-tab" id="product-benefits">
+                        <div class="related_list">
+                            <div class="related_items">
+                                
+                                    <div class="related_img">
+                                        <img src="/assets/image/hinahina/products_detail/tab06_01.jpg" alt="1.お手入れセット">
+                                    </div>
+                                    <div class="related_txt">
+                                        <p class="related_txt_ttl">1.お手入れセット</p>
+                                        <p class="related_txt_des">簡単にお手入れできるセットをお付け致します。</p>
+                                    </div>
+                                
+                            </div><!-- End related_items-->
+
+                            <div class="related_items">
+                                
+                                    <div class="related_img">
+                                        <img src="/assets/image/hinahina/products_detail/tab06_02.jpg" alt="2.毛氈">
+                                    </div>
+                                    <div class="related_txt">
+                                        <p class="related_txt_ttl">2.毛氈</p>
+                                        <p class="related_txt_des">飾るのに便利な毛氈をお付け致します。</p>
+                                    </div>
+                                
+                            </div><!-- End related_items-->
+
+                            <div class="related_items">
+                                
+                                    <div class="related_img">
+                                        <img src="/assets/image/hinahina/products_detail/tab06_03.jpg" alt="3.桐箱">
+                                    </div>
+                                    <div class="related_txt">
+                                        <p class="related_txt_ttl">3.桐箱</p>
+                                        <p class="related_txt_des">お雛様を桐箱に入れてお届け致します。</p>
+                                    </div>
+                                
+                            </div><!-- End related_items-->
+
+                            <div class="related_items">
+                                
+                                    <div class="related_img">
+                                        <img src="/assets/image/hinahina/products_detail/tab06_04.jpg" alt="4.お名前プレート">
+                                    </div>
+                                    <div class="related_txt">
+                                        <p class="related_txt_ttl">4.お名前プレート</p>
+                                        <p class="related_txt_des">お子様の生年月日・お名前を入れたプレートをお作りいたします！<br class="pc-only">（お届けまでに5〜7日ほどかかります。） </p>
+                                    </div>
+                                
+                            </div><!-- End related_items-->
+
+                            <div class="related_items">
+                                
+                                    <div class="related_img">
+                                        <img src="/assets/image/hinahina/products_detail/tab06_05.jpg" alt="5.アフターサービス">
+                                    </div>
+                                    <div class="related_txt">
+                                        <p class="related_txt_ttl">5.アフターサービス</p>
+                                        <p class="related_txt_des">ご購入より1年間は無料で修理致します。安心してご購入いただけます。</p>
+                                    </div>
+                                
+                            </div><!-- End related_items-->
+                        </div><!-- End related_list-->
+                    </div><!-- End sc01-->
+                </div>
+            </div>
+        </section><!-- End p-products_detail_sc02-->
+
+{% endif %}
+ {% endif %}
+
+
+    </main><!-- End p-products_detail-->
+</div><!-- End l-wrap-->
+
+
+                    <div class="ec-modal">
+                        <input type="checkbox" id="ec-modal-checkbox" class="checkbox">
+                        <div class="ec-modal-overlay">
+                            <label for="ec-modal-checkbox" class="ec-modal-overlay-close"></label>
+                            <div class="ec-modal-wrap">
+                                <label for="ec-modal-checkbox" class="ec-modal-close"><span class="ec-icon"><img src="{{ asset('assets/icon/cross-dark.svg') }}" alt=""/></span></label>
+                                <div id="ec-modal-header" class="text-center">{{ 'カートに追加しました。'|trans }}</div>
+                                <div class="ec-modal-box">
+                                    <div class="ec-role">
+                                        <label for="ec-modal-checkbox" class="btn__cancel btn__size-s btn">{{ 'お買い物を続ける'|trans }}</label>
+                                        <a href="{{ url('cart') }}" class="btn__action btn__size-s btn ml20">{{ 'カートへ進む'|trans }}</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+</div>
+{% endblock %}

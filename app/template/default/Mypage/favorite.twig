@@ -1,0 +1,98 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends 'default_frame.twig' %}
+
+{% set mypageno = 'favorite' %}
+
+{% set body_class = 'mypage' %}
+
+{% block main %}
+
+<link rel="stylesheet" href="/ec4/html/template/default/assets/css/style.css">
+
+<div class="l-wrap">
+    <div class="l-naviPage"></div>
+    <div class="l-main">
+        <main class="p-login cart_top">
+
+        <div class="c-breadcrumb">
+            <ul class="c-breadcrumb_list">
+                <li class="c-breadcrumb_item"><a href="/"><span>ホーム</span></a></li>
+                <li class="c-breadcrumb_item"><span>マイページ</span></li>
+            </ul>
+        </div><!-- End breadcrumb-->
+
+
+            <section class="p-login_sc01">
+                <div class="l-cont">
+                    <div class="c-block01">
+                        <h2 class="c-block01_ttl">{{ 'マイページ'|trans }}/{{ 'お気に入り一覧'|trans }}</h2>
+                   </div><!-- End c-block01-->
+
+
+    <div class="ec-layoutRole__main">
+        <div class="ec-mypageRole">
+            {% include 'Mypage/navi.twig' %}
+        </div>
+
+        <div class="ec-mypageRole">
+            <div class="ec-favoriteRole">
+                {% if pagination.totalItemCount > 0 %}
+                    <div class="ec-favoriteRole__header">
+                        <p>{{ '%count%件のお気に入りがあります'|trans({'%count%':pagination.totalItemCount}) }}</p>
+                    </div>
+
+
+
+<div class="list_img">
+{% for FavoriteProduct in pagination %}
+{% set Product = FavoriteProduct.Product %}
+<div class="list_img_items">
+    <a href="{{ url('product_detail', {'id': Product.id}) }}">
+        <img src="{{ asset(Product.main_list_image|no_image_product, 'save_image') }}">
+        <h3 class="c-tit04">
+            <span class="c-tit04_jap">{{ Product.name }}</span>
+            <span class="c-tit04_eng">{{TabaCustomFieldsProduct('kana', Product.id)}}</span>
+        </h3>
+        <p class="c-price">
+            <span class="c-price_num">
+                                        {% if Product.price02_inc_tax_min == Product.price02_inc_tax_max %}
+                                            {{ Product.price02_inc_tax_min|number_format }}
+                                        {% else %}
+                                            {{ Product.price02_inc_tax_min|number_format }}～{{ Product.price02_inc_tax_max|number_format }}
+                                        {% endif %}
+</span>円<span class="c-price_tax">(税別)</span><a href="{{ url('mypage_favorite_delete', { id : Product.id }) }}" {{ csrf_token_for_anchor() }} data-method="delete"><span class="c-price_heart_2"></span></a>
+        </p>
+    </a>
+</div><!-- End list_img_items-->
+{% endfor %}
+</div><!-- End list_img-->
+
+
+
+                    <div class="ec-pagerRole">
+                        {% include "pager.twig" with {'pages': pagination.paginationData} %}
+                    </div>
+                {% else %}
+                    <div class="ec-favoriteRole__header">{{ 'お気に入りは登録されていません。'|trans }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+                </div>
+            </section><!-- End p-login_sc01-->
+        </main><!-- End p-login-->
+    </div><!-- End l-main-->
+</div><!-- End l-wrap-->
+
+
+{% endblock %}

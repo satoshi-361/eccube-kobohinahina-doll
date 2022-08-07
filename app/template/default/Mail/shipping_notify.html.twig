@@ -1,0 +1,183 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=iso-2022-jp">
+<title>商品を発送いたしました</title>
+<meta name="keywords" content="">
+<meta name="description" content="">
+<style type="text/css" media="screen">
+body, div, table, td, th, h1, h2, p {
+	padding: 0;
+	margin: 0;
+	color: #595757;
+	font-size: 17px;
+	font-family: "メイリオ", "Meiryo", "ＭＳ Ｐゴシック", sans-serif;
+}
+body{
+width:700px;
+}
+
+a {
+	color: #333333;
+}
+a:hover {
+	text-decoration: none;
+}
+</style>
+</head>
+
+<body bgcolor="#ffffff" text="#333333" style="font-size: 12px; font-family: 'メイリオ', 'Meiryo', 'ＭＳ Ｐゴシック', sans-serif;">
+<div style="width:700px;text-align:center;">
+<table style="width:700px;text-align:center;">
+<tr>
+<td style="background-color:#323232;text-align:center;">
+	<a href="http://kobohinahina.com/" target="_blank"><img src="http://kobohinahina.com/html_image/html_logo.png"></a>
+</td>
+</tr>
+<tr>
+<td style="text-align:center;font-size:30px;padding:60px 0 70px;">
+
+{{ Order.name01 }} {{ Order.name02 }} 様
+
+</td>
+</tr>
+
+<tr>
+<td style="    padding-bottom: 40px;text-align:center;">
+
+この度はご注文いただき誠にありがとうございます。<br>
+お客さまがご注文された以下の商品を発送いたしました。商品の到着まで、今しばらくお待ちください。<br><br><br>
+
+</td>
+</tr>
+<tr>
+<td style="    padding-bottom: 40px;text-align:center;">
+<img src="http://kobohinahina.com/html_image/html_shop.jpg">
+</td>
+</tr>
+<tr>
+<td style="    padding-bottom: 40px;text-align:left; padding-left: 50px;">
+
+{% if Shipping.tracking_number %}
+************************************************<br>
+配送方法：{{ Shipping.shipping_delivery_name }}<br>
+お問い合わせ番号：{{ Shipping.tracking_number }}
+{% if Shipping.Delivery.confirm_url %}
+<br>
+お問い合わせURL：{{ Shipping.Delivery.confirm_url }}
+{% endif %}
+<br>
+{% endif %}
+
+************************************************<br>
+　ご注文商品明細<br>
+************************************************<br>
+
+{% for OrderItem in Order.MergedProductOrderItems %}
+商品コード: {{ OrderItem.product_code }}<br>
+商品名: {{ OrderItem.product_name }}  {{ OrderItem.classcategory_name1 }}  {{ OrderItem.classcategory_name2 }}{% if is_reduced_tax_rate(OrderItem) %}※{% set isShowReducedTaxMess = true %}{% endif %}<br>
+単価：{{ OrderItem.price_inctax|price }}<br>
+数量：{{ OrderItem.quantity|number_format }}<br><br>
+{% endfor %}
+
+************************************************<br>
+　ご注文者情報<br>
+************************************************<br>
+　お名前　：{{ Order.name01 }} {{ Order.name02 }}　様<br>
+{% if Order.company_name %}
+　会社名　：{{ Order.company_name }}<br>
+{% endif %}
+　郵便番号：〒{{ Order.postal_code }}<br>
+　住所：{{ Order.Pref.name }}{{ Order.addr01 }}{{ Order.addr02 }}<br>
+　電話番号：{{ Order.phone_number }}<br>
+　メールアドレス：{{ Order.email }}<br><br><br>
+
+************************************************<br>
+　配送情報<br>
+************************************************<br><br>
+
+{% for Shipping in Order.Shippings %}
+◎お届け先{% if Order.multiple %}{{ loop.index }}{% endif %}<br><br>
+
+　お名前：{{ Shipping.name01 }} {{ Shipping.name02 }}　様<br>
+{% if Shipping.company_name %}
+　会社名：{{ Shipping.company_name }}<br>
+{% endif %}
+　郵便番号：〒{{ Shipping.postal_code }}<br>
+　住所：{{ Shipping.Pref.name }}{{ Shipping.addr01 }}{{ Shipping.addr02 }}<br>
+　電話番号：{{ Shipping.phone_number }}<br><br>
+
+　お届け日：{{ Shipping.shipping_delivery_date is empty ? '指定なし' : Shipping.shipping_delivery_date|date_day }}<br>
+　お届け時間：{{ Shipping.shipping_delivery_time|default('指定なし') }}<br><br>
+
+{% for OrderItem in Shipping.productOrderItems %}
+商品コード: {{ OrderItem.product_code }}<br>
+商品名: {{ OrderItem.product_name }}  {{ OrderItem.classcategory_name1 }}  {{ OrderItem.classcategory_name2 }}<br>
+数量：{{ OrderItem.quantity|number_format }}<br><br>
+
+{% endfor %}
+<br>
+{% endfor %}
+
+************************************************<br>
+　お名前プレート<br>
+************************************************<br><br>
+
+お名前：{{ TabaCustomFieldsOrder('nameplate', Order.id) }}<br>
+生年月日：{{ TabaCustomFieldsOrder('np_year_select', Order.id) }}{{ TabaCustomFieldsOrder('np_month_select', Order.id) }}月{{ TabaCustomFieldsOrder('np_day_select', Order.id) }}日<br><br>
+
+
+</td>
+</tr>
+</table>
+
+<table style="width:560px;text-align:center;margin:auto;">
+<tr>
+<td style="font-size:15px;text-align:center;padding:120px 0 50px;">
+	<a href="http://kobohinahina.com/" target="_blank"><img src="http://kobohinahina.com/html_image/html_logo2.png"></a>
+</td>
+</tr>
+</table>
+
+<table style="width:700px;text-align:center;padding-bottom:80px;">
+<tr>
+<td>
+	<a href="https://instagram.com/kobo_hinahina/" target="_blank"><img style="margin-right:80px;" src="http://kobohinahina.com/html_image/html_insta.png"></a>
+	<a href="http://blog.kobohinahina.com/" target="_blank"><img src="http://kobohinahina.com/html_image/html_blog.png"></a>
+</td>
+</tr>
+<tr>
+<td style="text-align:center;padding:50px 0 70px;line-height: 38px;">
+
+</td>
+</tr>
+</table>
+
+<table style="width:700px;text-align:center;background-color:#cdcdcd;">
+<tr>
+<td style="text-align:left;padding:65px 130px;line-height: 38px;">
+会社名 : 有限会社人形の秀隆<br>
+住所 : 〒337-0015 埼玉県さいたま市見沼区蓮沼491-1<br>
+営業時間 : 10:00～18:00<br>
+TEL : 048-680-5631<br>
+フリーダイアル：0120-346-785<br>
+FAX : 048-680-5632<br>
+email : info@kobohinahina.com
+</td>
+</tr>
+
+</table>
+</div>
+
+</body>
+</html>

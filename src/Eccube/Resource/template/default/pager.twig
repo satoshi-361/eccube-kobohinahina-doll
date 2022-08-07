@@ -1,0 +1,54 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% if pages.pageCount > 1 %}
+    <ul class="c-navi">
+        {# 最初へ #}
+        {% if pages.firstPageInRange != 1 %}
+            <li class="c-navi_l2">
+                <a href="{{ path(
+                app.request.attributes.get('_route'),
+                app.request.query.all|merge({'pageno': pages.first})) }}"><img src="/assets/image/common/navi_l2.png"></a></li>
+
+        {% endif %}
+
+        {# 前へ #}
+        {% if pages.previous is defined %}
+            <li class="c-navi_l1">
+                <a href="{{ path(
+                app.request.attributes.get('_route'),
+                app.request.query.all|merge({'pageno': pages.previous})) }}"><img src="/assets/image/common/navi_l1.png"></a></li>
+        {% endif %}
+
+
+        {% for page in pages.pagesInRange %}
+            {% if page == pages.current %}
+                <li class="c-navi_c"> {{ page }}  / {{ pages.last }}</li>
+            {% endif %}
+        {% endfor %}
+
+
+        {# 次へ #}
+        {% if pages.next is defined %}
+            <li class="c-navi_r2">
+                <a href="{{ path(
+                app.request.attributes.get('_route'),
+                app.request.query.all|merge({'pageno': pages.next})) }}"><img src="/assets/image/common/navi_r2.png"></a></li>
+        {% endif %}
+
+        {# 最後へ #}
+        {% if pages.last != pages.lastPageInRange %}
+            <li class="c-navi_r1">
+                <a href="{{ path(
+                app.request.attributes.get('_route'),
+                app.request.query.all|merge({'pageno': pages.last})) }}"><img src="/assets/image/common/navi_r1.png"></a></li>
+        {% endif %}
+    </ul>
+{% endif %}

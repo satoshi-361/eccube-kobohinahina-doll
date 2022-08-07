@@ -1,0 +1,67 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends 'default_frame.twig' %}
+
+{% set body_class = 'cart_page' %}
+
+{% block main %}
+
+<link rel="stylesheet" href="/ec4/html/template/default/assets/css/style.css">
+
+<main class="p-confirm cart_top">
+	<div class="l-wrap">
+		<div class="l-naviPage"></div>
+		<div class="l-main">
+
+			<div class="p-confirm__wrap">
+
+				<div class="c-block01">
+					<h2 class="c-block01_ttl">{{ 'ご注文完了'|trans }}</h2>
+					<ol class="c-list2">
+						<li>
+							<span class="c-list2__number">1</span>
+							<span class="c-list2__text">カートの商品</span>
+						</li>
+						<li>
+							<span class="c-list2__number">2</span>
+							<span class="c-list2__text">お客様情報</span>
+						</li>
+						<li>
+							<span class="c-list2__number">3</span>
+							<span class="c-list2__text">ご注文手続き</span>
+						</li>
+						<li>
+							<span class="c-list2__number">4</span>
+							<span class="c-list2__text">ご注文内容確認</span>
+						</li>
+						<li class="active">
+							<span class="c-list2__number">4</span>
+							<span class="c-list2__text">完了</span>
+						</li>
+					</ol>
+
+<p class="c-block01_txt">ご注文いただきありがとうございました。<br>
+ただいま、ご注文の確認メールをお送りさせていただきました。<br>
+万一、ご確認メールが届かない場合は、トラブルの可能性もありますので、大変お手数ではございますがもう一度お問い合わせいただくか、お電話にてお問い合わせくださいませ。<br>
+今後ともご愛顧賜りますようよろしくお願い申し上げます。
+</p>
+
+				</div>
+
+
+			</div>
+		</div>
+	</div>
+</main>
+
+
+
+{% endblock %}

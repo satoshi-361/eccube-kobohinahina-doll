@@ -1,0 +1,494 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends 'default_frame.twig' %}
+
+{% set body_class = 'page-products' %}
+
+{% block javascript %}
+    <script>
+        eccube.productsClassCategories = {
+            {% for Product in pagination %}
+            "{{ Product.id|escape('js') }}": {{ class_categories_as_json(Product)|raw }}{% if loop.last == false %}, {% endif %}
+            {% endfor %}
+        };
+
+        $(function() {
+
+            // 表示件数を変更
+            $('.disp-number').change(function() {
+                var dispNumber = $(this).val();
+                $('#disp_number').val(dispNumber);
+                $('#pageno').val(1);
+                $("#form1").submit();
+            });
+
+            // 並び順を変更
+            $('.order-by').change(function() {
+                var orderBy = $(this).val();
+                $('#orderby').val(orderBy);
+                $('#pageno').val(1);
+                $("#form1").submit();
+            });
+
+            $('.add-cart').on('click', function(e) {
+                var $form = $(this).parents('li').find('form');
+
+                // 個数フォームのチェック
+                var $quantity = $form.parent().find('.quantity');
+                if ($quantity.val() < 1) {
+                    $quantity[0].setCustomValidity('{{ '1以上で入力してください。'|trans }}');
+                    setTimeout(function() {
+                        loadingOverlay('hide');
+                    }, 100);
+                    return true;
+                } else {
+                    $quantity[0].setCustomValidity('');
+                }
+                e.preventDefault();
+                $.ajax({
+                    url: $form.attr('action'),
+                    type: $form.attr('method'),
+                    data: $form.serialize(),
+                    dataType: 'json',
+                    beforeSend: function(xhr, settings) {
+                        // Buttonを無効にする
+                        $('.add-cart').prop('disabled', true);
+                    }
+                }).done(function(data) {
+                    // レスポンス内のメッセージをalertで表示
+                    $.each(data.messages, function() {
+                        $('#ec-modal-header').html(this);
+                    });
+
+                    $('#ec-modal-checkbox').prop('checked', true);
+
+                    // カートブロックを更新する
+                    $.ajax({
+                        url: '{{ url('block_cart') }}',
+                        type: 'GET',
+                        dataType: 'html'
+                    }).done(function(html) {
+                        $('.ec-headerRole__cart').html(html);
+                    });
+                }).fail(function(data) {
+                    alert('{{ 'カートへの追加に失敗しました。'|trans }}');
+                }).always(function(data) {
+                    // Buttonを有効にする
+                    $('.add-cart').prop('disabled', false);
+                });
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block main %}
+    {% if search_form.category_id.vars.errors|length > 0 %}
+        <div class="ec-searchnavRole">
+            <p class="errormsg text-danger">{{ 'ご指定のカテゴリは存在しません'|trans }}</p>
+        </div>
+    {% else %}
+<div class="l-wrap">
+    <div class="l-naviPage"></div>
+    <div class="l-main">
+        <main class="p-products">
+            <section class="c-mainimg">
+                <div class="c-slider">
+                    <div class="c-slider_item"></div>
+                    <div class="c-slider_item"></div>
+                    <div class="c-slider_item"></div>
+                </div>
+                <div class="c-mainimg_inner">
+                    <h2 class="c-mainimg_text">商品一覧</h2>
+                </div>
+            </section><!-- End c-mainimg-->
+
+            <div class="c-breadcrumb">
+                <ul class="c-breadcrumb_list">
+                    <li class="c-breadcrumb_item"><a href="/"><span>ホーム</span></a></li>
+                    <li class="c-breadcrumb_item"><span>商品一覧</span></li>
+                </ul>
+            </div><!-- End breadcrumb-->
+
+            <section class="p-products_sc01">
+                <div class="l-cont">
+                    <div class="c-block01">
+                        <h2 class="c-block01_ttl">ずっと、そっと、<br class="sp-only">見守るように<br>美しく丈夫で良いものを</h2>
+                        <p class="c-block01_txt">ひな雛は伝統に忠実な製法である手仕事と目に見えないものにもこだわります。<br>一つ一つの作業は目に見えないものかもしれませんが、想いと手間を込めて、最終的にひな雛としてお客様の手元に届いた時には、目に見えるくらい良い製品になる。そんな自信と確信があるからこそ、私たちは製造にこだわっています。
+                        </p>
+                    </div>
+
+                    <div class="list_s">
+                        <div class="list_s01">
+                            <div class="list_s_items list_s--items01">
+                                <a class="popup" id="open-popup-form">絞り込み</a>
+                            </div>
+            <form name="form1" id="form1" method="get" action="?">
+                {% for item in search_form %}
+                    <input type="hidden" id="{{ item.vars.id }}"
+                           name="{{ item.vars.full_name }}"
+                           {% if item.vars.value is not empty %}value="{{ item.vars.value }}" {% endif %}/>
+                {% endfor %}
+            </form>
+                                            {% if pagination.totalItemCount > 0 %}
+                    <div class="ec-searchnavRole__actions">
+                        <div class="ec-select list_s_items list_s--items02">
+                            {{ form_widget(order_by_form, {'id': '', 'attr': {'class': 'order-by'}}) }}
+                        </div>
+                    </div>
+                {% endif %}
+                
+
+                        </div>
+                        <div class="list_s_items list_s--items03">
+<form method="get" class="searchform" action="./list">
+<input type="search" name="name" maxlength="50" class="search-name" placeholder="キーワードを入力" />
+                            <button class="button_s" type="submit">検索</button>
+                            </form>
+                        </div>
+                    </div><!-- End list_s-->
+                    <div class="list_img">
+
+        {% if pagination.totalItemCount > 0 %}
+	        {% for Product in pagination %}
+
+
+                        <div class="list_img_items">
+                            <a href="{{ url('product_detail', {'id': Product.id}) }}">
+                                <img src="{{ asset(Product.main_list_image|no_image_product, 'save_image') }}">
+                                <h3 class="c-tit04">
+                                    <span class="c-tit04_jap">{{ Product.name }}</span>
+                                    <span class="c-tit04_eng">{{TabaCustomFieldsProduct('kana', Product.id)}}</span>
+                                </h3>
+                                <p class="c-price">
+                                    <span class="c-price_num">{{ Product.getPrice02IncTaxMin|number_format }}</span>円<span class="c-price_tax">(税込)</span>
+                                </p>
+																{% if Product.stock_find %}
+																{% else %}
+																<p class="items_note">品切れ</p>
+																{% endif %}
+                            </a>
+                        </div><!-- End list_img_items-->
+{% endfor %}
+                    {% else %}
+                        <span class="no_item">{{ 'お探しの商品は見つかりませんでした'|trans }}</span>
+{% endif %}
+                    </div><!-- End list_img-->
+
+
+{% include "pager.twig" with {'pages': pagination.paginationData} %}
+
+                </div>
+            </section><!-- End p-products_sc01-->
+
+            <section class="p-products_sc02 related u-bg01">
+                <div class="l-cont">
+                    <h2 class="c-tit02">関連情報</h2>
+                    <div class="related_list">
+                        <div class="related_items">
+                            <a href="/semiorder/">
+                                <div class="related_img">
+                                    <img src="/assets/image/hinahina/products/related_img01.jpg" alt="セミオーダー">
+                                </div>
+                                <div class="related_txt">
+                                    <p class="related_txt_ttl">セミオーダー</p>
+                                    <p class="related_txt_des">あなただけのお雛様を制作します。</p>
+                                </div>
+                            </a>
+                        </div><!-- End related_items-->
+
+                        <div class="related_items">
+                            <a href="/catalog/">
+                                <div class="related_img">
+                                    <img src="/assets/image/hinahina/products/related_img03.jpg" alt="カタログ請求">
+                                </div>
+                                <div class="related_txt">
+                                    <p class="related_txt_ttl">カタログ請求</p>
+                                    <p class="related_txt_des">商品ご購入の前にサンプル商品を手に取って見ることができます。</p>
+                                </div>
+                            </a>
+                        </div><!-- End related_items-->
+
+                        <div class="related_items">
+                            <a href="/sample/">
+                                <div class="related_img">
+                                    <img src="/assets/image/hinahina/products/related_img02.jpg" alt="サンプル送付">
+                                </div>
+                                <div class="related_txt">
+                                    <p class="related_txt_ttl">サンプル送付</p>
+                                    <p class="related_txt_des">最上級の雛人形。いろいろな角度から見ていただけます。</p>
+                                </div>
+                            </a>
+                        </div><!-- End related_items-->
+
+                        <div class="related_items">
+                            <a href="https://blog.kobohinahina.com/" target="_blank">
+                                <div class="related_img">
+                                    <img src="/assets/image/hinahina/products/related_img04.jpg" alt="ブログ">
+                                </div>
+                                <div class="related_txt">
+                                    <p class="related_txt_ttl">ブログ</p>
+                                    <p class="related_txt_des">スタッフが送る、お人形と日々の事を綴るブログです。</p>
+                                </div>
+                            </a>
+                        </div><!-- End related_items-->
+                    </div><!-- End related_list-->
+                </div>
+            </section><!-- End p-products_sc02-->
+        </main><!-- End p-products-->
+    </div><!-- End l-main-->
+</div><!-- End l-wrap-->
+
+
+<script>
+$(function() {
+ 
+  // チェックボックスをチェックしたら発動
+  $('input[name="names[]"]').change(function() {
+ 
+    // ①空の配列を用意
+    var citys = [];
+    var cityss = '';
+ 
+    // ②チェックが入ったらループ処理
+    $('input[name="names[]"]:checked').each(function() {
+ 
+      // ③value値を配列に格納
+      citys.push($(this).val());
+ cityss += $(this).val() + " ";
+    });
+
+var aaaaa = cityss.slice( 0, -1 ) ;
+ 
+    // 格納した配列を表示
+    $('#p01').val(aaaaa);
+ 
+  });
+
+
+  $('.reset_bt').on('click', function(){
+    $('input[type="checkbox"]').removeAttr('checked').prop('checked', false).change();
+  });
+
+
+ $("#search_bt").click( function() {
+
+  var rc = $("input[name='radio_cat']:checked").val();
+  $('#p02').val(rc);
+
+ })
+
+
+});
+</script>
+
+<!-- The Modal -->
+<div id="popup-form" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+        <span class="close c-form_s_delete" id="close-popup-form"><img src="/assets/image/common/icon_delete.png" alt=""></span>
+        <p class="c-form_s_name">カテゴリから選ぶ<span class="c-form_s_name_sub">※1つのみ選択可能</span></p>
+
+          <div class="c-form_s">
+
+            <div class="c-form_s_cat">
+                <div class="cat_ttl">
+                    <p class="cat_ttl_name">商品カテゴリ</p>
+                </div>
+                <ul class="cat_list">
+                    <li>
+                        <input type="radio" id="親王飾り" name="radio_cat" value="10">
+                        <label class="label_txt c-radio" for="親王飾り"> 親王飾り</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="五人飾り" name="radio_cat" value="11">
+                        <label class="label_txt c-radio" for="五人飾り">五人飾り</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="十人飾り" name="radio_cat" value="12">
+                        <label class="label_txt c-radio" for="十人飾り">十人飾り</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="十五人・段飾り" name="radio_cat" value="17">
+                        <label class="label_txt c-radio" for="十五人・段飾り">十五人・段飾り</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="収納飾り" name="radio_cat" value="14">
+                        <label class="label_txt c-radio" for="収納飾り">収納飾り</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="ケース飾り" name="radio_cat" value="15">
+                        <label class="label_txt c-radio" for="ケース飾り">ケース飾り</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="立雛" name="radio_cat" value="13">
+                        <label class="label_txt c-radio" for="立雛">立雛</label>
+                    </li>
+                </ul>
+            </div><!-- End form_s_cat-->
+            <div class="c-form_s_cat">
+                <div class="cat_ttl">
+                    <p class="cat_ttl_name">その他の商品カテゴリ</p>
+                </div>
+                <ul class="cat_list">
+                    <li>
+                        <input type="radio" id="親王単体" name="radio_cat" value="29">
+                        <label class="label_txt c-radio" for="親王単体"> 親王単体</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="その他のお人形" name="radio_cat" value="22">
+                        <label class="label_txt c-radio" for="その他のお人形">その他のお人形</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="つるし飾り・几帳" name="radio_cat" value="16">
+                        <label class="label_txt c-radio" for="つるし飾り・几帳">つるし飾り・几帳</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="飾り台" name="radio_cat" value="24">
+                        <label class="label_txt c-radio" for="飾り台">飾り台</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="屏風" name="radio_cat" value="28">
+                        <label class="label_txt c-radio" for="屏風">屏風</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="花" name="radio_cat" value="26">
+                        <label class="label_txt c-radio" for="花">花</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="雪洞・燭台" name="radio_cat" value="25">
+                        <label class="label_txt c-radio" for="雪洞・燭台">雪洞・燭台</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="小物" name="radio_cat" value="27">
+                        <label class="label_txt c-radio" for="小物">小物</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="セミオーダー専用" name="radio_cat" value="23">
+                        <label class="label_txt c-radio" for="セミオーダー専用">セミオーダー専用</label>
+                    </li>
+                </ul>
+            </div><!-- End form_s_cat-->
+            <div class="c-form_s_cat">
+                <div class="cat_ttl">
+                    <p class="cat_ttl_name">価格帯</p>
+                </div>
+                <ul class="cat_list">
+                    <li>
+                        <input type="radio" id="10万円未満" name="radio_cat" value="18">
+                        <label class="label_txt c-radio" for="10万円未満">10万円未満</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="10万円〜15万円" name="radio_cat" value="19">
+                        <label class="label_txt c-radio" for="10万円〜15万円">10万円〜15万円</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="15万円〜20万円" name="radio_cat" value="20">
+                        <label class="label_txt c-radio" for="15万円〜20万円">15万円〜20万円</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="20万円〜30万円" name="radio_cat" value="21">
+                        <label class="label_txt c-radio" for="20万円〜30万円">20万円〜30万円</label>
+                    </li>
+                    <li>
+                        <input type="radio" id="30万円以上" name="radio_cat" value="30">
+                        <label class="label_txt c-radio" for="30万円以上">30万円以上</label>
+                    </li>
+                </ul>
+            </div><!-- End form_s_cat-->
+        </div>
+        <p class="c-form_s_name" style="padding-top: 0;">さらに絞り込む</p>
+        <div class="c-form_s">            
+            <div class="c-form_s_cat cat_img">
+                <div class="cat_ttl">
+                    <p class="cat_ttl_name">衣装タイプ</p>
+                </div>
+                <ul class="cat_list">
+                    <li>
+                        <input class="checkbox_img" id="京友禅" type="checkbox" name="names[]" value="京友禅">
+                        <label class="label_img" for="京友禅">
+                            <img src="/assets/image/hinahina/search/img01.jpg" alt="京友禅">
+                            <p class="name_img">京友禅</p>
+                        </label>
+                    </li>
+                    <li>
+                        <input class="checkbox_img" id="金襴" type="checkbox" name="names[]" value="金襴">
+                        <label class="label_img" for="金襴">
+                            <img src="/assets/image/hinahina/search/img02.jpg" alt="金襴">
+                            <p class="name_img">金襴</p>
+                        </label>
+                    </li>
+                    <li>
+                        <input class="checkbox_img" id="帯地" type="checkbox" name="names[]" value="帯地">
+                        <label class="label_img" for="帯地">
+                            <img src="/assets/image/hinahina/search/img03.jpg" alt="帯地">
+                            <p class="name_img">帯地</p>
+                        </label>
+                    </li>
+                    <li>
+                        <input class="checkbox_img" id="丹後縮緬・刺繍" type="checkbox" name="names[]" value="丹後縮緬・刺繍">
+                        <label class="label_img" for="丹後縮緬・刺繍">
+                            <img src="/assets/image/hinahina/search/img04.jpg" alt="丹後縮緬・刺繍">
+                            <p class="name_img">丹後縮緬・刺繍</p>
+                        </label>
+                    </li>
+                    <li>
+                        <input class="checkbox_img" id="丹後縮緬・金彩" type="checkbox" name="names[]" value="丹後縮緬・金彩">
+                        <label class="label_img" for="丹後縮緬・金彩">
+                            <img src="/assets/image/hinahina/search/img05.jpg" alt="丹後縮緬・金彩">
+                            <p class="name_img">丹後縮緬・金彩</p>
+                        </label>
+                    </li>
+                </ul>
+            </div><!-- End form_s_cat-->
+            <div class="c-form_s_cat">
+                <div class="cat_ttl">
+                    <p class="cat_ttl_name">お人形号数</p>
+                </div>
+                <ul class="cat_list">
+                    <li>
+                        <input type="checkbox" id="13号" name="names[]" value="13号">
+                        <label class="label_txt" for="13号">13号</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="14号" name="names[]" value="14号">
+                        <label class="label_txt" for="14号">14号</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="15号" name="names[]" value="15号">
+                        <label class="label_txt" for="15号">15号</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="18号" name="names[]" value="18号 (A)">
+                        <label class="label_txt" for="18号">18号</label>
+                    </li>
+                </ul>
+            </div><!-- End form_s_cat-->
+
+            <div class="combtn">
+                <div class="c-btn01">
+                    <div class="c-btn01_out">
+
+<form method="get" class="searchform" action="./list" id="popup-form">
+<input type="hidden" id="p02" name="category_id">
+<input id="p01" type="search" name="name"  class="search-name" placeholder="キーワードを入力" style="display:none"  />
+<button id="search_bt" class="button_s" type="submit">この条件で検索する</button>
+                        <!-- <a href="#">この条件で検索する</a> -->
+                    </div>
+                </div><!-- End c-btn01-->
+                <div class="btn_clear">
+                    <button class="reset_bt" type="reset" value="検索条件をクリア"><img src="/assets/image/common/icon_clear.png" alt="検索条件をクリア">検索条件をクリア</button>
+                </div>
+            </div></form>
+        </div><!-- End c-form_s-->
+    </div>
+</div>
+    {% endif %}
+{% endblock %}

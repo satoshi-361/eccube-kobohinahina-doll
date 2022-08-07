@@ -1,0 +1,51 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends 'default_frame.twig' %}
+
+{% block main %}
+
+<link rel="stylesheet" href="/ec4/html/template/default/assets/css/style.css">
+
+<div class="l-wrap">
+    <div class="l-naviPage"></div>
+    <div class="l-main">
+        <main class="p-login cart_top">
+
+
+            <section class="p-login_sc01">
+                <div class="l-cont">
+                    <div class="c-block01">
+                        <h2 class="c-block01_ttl">{{ 'パスワードの再発行(メール送信)'|trans }}</h2>
+                   </div><!-- End c-block01-->
+
+
+    <div class="ec-forgetCompleteRole">
+        <div class="ec-off3Grid ec-text-ac">
+            <div class="ec-off3Grid__cell">
+                <div class="ec-reportHeading">
+                    <h2>{{ 'パスワード再発行メールの送信が完了しました。'|trans }}</h2>
+                </div>
+                <p class="ec-reportDescription">{{ 'ご登録メールアドレスにパスワードを再発行するためのメールを送信いたしました。
+メールの内容をご確認いただきますよう、お願いいたします。
+※メールが届かない場合はメールアドレスをご確認の上、再度お試しください。
+'|trans }}</p>
+            </div>
+        </div>
+    </div>
+
+                </div>
+            </section><!-- End p-login_sc01-->
+        </main><!-- End p-login-->
+    </div><!-- End l-main-->
+</div><!-- End l-wrap-->
+
+
+{% endblock %}

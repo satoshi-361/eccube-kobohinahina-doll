@@ -1,0 +1,262 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends 'default_frame.twig' %}
+
+{% form_theme form 'Form/form_div_layout.twig' %}
+
+{% block main %}
+<link rel="stylesheet" href="/ec4/html/template/default/assets/css/style.css">
+
+<main class="p-confirm cart_top">
+	<div class="l-wrap">
+		<div class="l-naviPage"></div>
+		<div class="l-main">
+
+			<div class="p-confirm__wrap">
+
+				<div class="c-block01">
+					<h2 class="c-block01_ttl">{{ 'ご注文内容のご確認'|trans }}</h2>
+					<ol class="c-list2">
+						<li>
+							<span class="c-list2__number">1</span>
+							<span class="c-list2__text">カートの商品</span>
+						</li>
+						<li>
+							<span class="c-list2__number">2</span>
+							<span class="c-list2__text">お客様情報</span>
+						</li>
+						<li>
+							<span class="c-list2__number">3</span>
+							<span class="c-list2__text">ご注文手続き</span>
+						</li>
+						<li class="active">
+							<span class="c-list2__number">4</span>
+							<span class="c-list2__text">ご注文内容確認</span>
+						</li>
+						<li>
+							<span class="c-list2__number">4</span>
+							<span class="c-list2__text">完了</span>
+						</li>
+					</ol>
+
+<p class="c-block01_txt">下記ご注文内容で送信してもよろしいでしょうか？<br>よろしければ、「次へ」ボタンをクリックしてください。</p>
+
+				</div>
+
+
+
+
+
+    <form id="shopping-form" method="post" action="{{ url('shopping_checkout') }}">
+    {{ form_widget(form._token) }}
+    <div class="ec-orderRole">
+        <div class="ec-orderRole__detail">
+            <div class="ec-orderAccount">
+                <div class="ec-rectHeading">
+                    <h2 class="p-confirm1__ttl1">{{ 'お客様情報'|trans }}</h2>
+                </div>
+                <div class="ec-orderAccount__account">
+                    <p class="ec-halfInput">{{ ''|trans }}{{ Order.name01 }} {{ Order.name02 }}</span>{{ ' 様'|trans }}</p>
+                    <p class="ec-halfInput">{{ Order.kana01 }}</span> {{ Order.kana02 }}</p>
+                    <p class="ec-input">{{ Order.companyName }}</span></p>
+                    <p class="ec-zipInput">{{ '〒'|trans }}{{ Order.postal_code }}</p>
+                    <p class="ec-input">{{ Order.pref }}{{ Order.addr01 }}{{ Order.addr02 }}</p>
+                    <p class="ec-telInput">{{ Order.phone_number }}</span></p>
+                    <p class="ec-input">{{ Order.email }}</span></p>
+                </div>
+            </div>
+            <div class="ec-orderDelivery">
+                <div class="ec-rectHeading">
+                    <h2 class="p-confirm1__ttl1">{{ '配送情報'|trans }}</h2>
+                </div>
+                {% for shipping in Order.shippings %}
+                    {% set idx = loop.index0 %}
+                    {% set isShowReducedTaxMess = false %}
+                    <div class="ec-orderDelivery__item">
+                        <ul class="ec-borderedList">
+                            {% for orderItem in shipping.productOrderItems %}
+                            <li>
+                                <div class="ec-imageGrid border_none">
+                                    <div class="ec-imageGrid__img"><img src="{{ asset((orderItem.product is null ? null : orderItem.product.MainListImage)|no_image_product, 'save_image') }}" alt="{{ orderItem.productName }}"></div>
+                                    <div class="ec-imageGrid__content">
+                                        <p>{{ orderItem.productName }}{% if is_reduced_tax_rate(orderItem) %}{{ '※'|trans }}{% set isShowReducedTaxMess = true %}{% endif %}</p>
+                                        {% if orderItem.productClass is not null and orderItem.productClass.classCategory1 %}
+                                            <p>{{ orderItem.productClass.classCategory1.className.name }}：{{ orderItem.productClass.classCategory1 }}</p>
+                                        {% endif %}
+                                        {% if orderItem.productClass is not null and orderItem.productClass.classCategory2 %}
+                                            <p>{{ orderItem.productClass.classCategory2.className.name }}：{{ orderItem.productClass.classCategory2 }}</p>
+                                        {% endif %}
+                                        <p>{{ orderItem.priceIncTax|number_format }}円 × {{ orderItem.quantity|number_format }}<span>{{ '小計：'|trans }}{{ orderItem.totalPrice|number_format }}円(税込)</span></p>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <p>{{ isShowReducedTaxMess ? '※ は軽減税率対象商品です。'|trans }}</p>
+                    </div>
+                    <div class="ec-orderDelivery__address">
+                        <p>{{ ''|trans }}{{ shipping.name01 }} {{ shipping.name02 }} ({{ shipping.kana01 }} {{ shipping.kana02 }}){{ ' 様'|trans }}</p>
+                        <p>{{ '〒'|trans }}{{ shipping.postal_code }} {{ shipping.pref }}{{ shipping.addr01 }}{{ shipping.addr02 }}</p>
+                        <p>{{ shipping.phone_number }}</p>
+                    </div>
+                    <div class="ec-orderDelivery__actions">
+                        <div class="ec-selects">
+                            <div class="ec-select" style="display:none;">
+                                <label>{{ '配送方法'|trans }}</label>
+                                {% set delivery_fee = 0 %}
+                                {% for item in shipping.order_items if item.isDeliveryFee %}
+                                    {% set delivery_fee = item.total_price %}
+                                {% endfor %}
+                                {{ Order.Shippings[idx].Delivery }}({{ delivery_fee|number_format }}円)
+                            </div>
+                            <div class="ec-select ec-select__delivery">
+                                <label>{{ 'お届け日'|trans }}</label>
+                                {{ Order.Shippings[idx].shipping_delivery_date? Order.Shippings[idx].shipping_delivery_date|date_day_with_weekday : '指定なし'|trans }}
+                            </div>
+                            <div class="ec-select ec-select__time">
+                                <label>{{ 'お届け時間'|trans }}</label>
+                                {{ Order.Shippings[idx].shipping_delivery_time?: '指定なし'|trans }}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="ec-orderPayment">
+                <div class="ec-rectHeading">
+                    <h2 class="p-confirm1__ttl1">{{ 'お支払方法'|trans }}</h2>
+                </div>
+                <div class="ec-blockRadio">
+                    {% set charge = 0 %}
+                    {% for item in Order.order_items if item.isCharge %}
+                        {% set charge = item.total_price %}
+                    {% endfor %}
+                    {{ Order.Payment }}<!--({{ charge|number_format }}円)-->
+                </div>
+            </div>
+            
+
+            
+            {% if BaseInfo.isOptionPoint and Order.Customer is not null %}
+            <div class="ec-orderPayment">
+                <div class="ec-rectHeading">
+                    <h2 class="p-confirm1__ttl1">{{ '利用ポイント'|trans }}</h2>
+                </div>
+                <div class="ec-blockRadio">
+                    {{ Order.use_point|number_format }} pt
+                </div>
+            </div>
+            {% endif %}
+
+
+                <div class="ec-orderConfirm">
+                    <div class="ec-rectHeading">
+                        <h2 class="p-confirm1__ttl1">お名前プレートの名入れ指定</h2>
+                    </div>
+
+
+						<div class="p-shopping1__info1">
+							<div class="p-shopping1__imgtxt1">
+								<div class="p-shopping1__img">
+									<img src="/assets/image/hinahina/shopping/img1.png" alt="">
+								</div>
+								<p class="p-shopping1__text1">特典の「お名前プレート」に入れるお名前を記入してください。</p>
+							</div>
+
+<div id="plate_name_area">
+
+
+</div>
+
+							<ul class="p-shopping1__list3">
+								<li>今年（2019年）は、平成31年または令和元年です。</li>
+								<li>双子ちゃんのご連名も承ります。</li>
+								<li>常用漢字以外をご使用の場合はご説明をお願いします。</li>
+							</ul>
+
+						</div>
+
+								<div class="p-shopping1__txt4">
+									<p class="p-shopping1__ttl1">その他お問い合わせ</p>
+									<div class="p-shopping1__info1">
+{{ Order.message|nl2br }}										<p class="p-shopping1__text2">（3000文字まで）</p>
+										<ul class="p-shopping1__list1">
+											<li>五人以上のお人形がセットされたセミオーダー商品をご購入のお客様、三人官女や五人囃子のお顔変更を個別にご希望のお客様は、お顔変更を希望する旨と ご希望のお顔の種類（凛・優・麗）をご記入願います。<br><span><i>記入例：</i>三人官女・五人囃子のお顔変更希望（優へ変更）</span></li>
+											<li>個別にお顔変更の希望をいただいていない場合は、親王様にてご選択いただいたお顔に関わらず、購入頂く商品ページに掲載のお写真と同じお顔の三人官女や五人囃子をご用意致します。</li>
+										</ul>
+									</div>
+								</div>
+
+
+
+        </div>
+        </div>
+        <div class="ec-orderRole__summary">
+            <div class="ec-totalBox">
+                <dl class="ec-totalBox__spec">
+                    <dt>{{ '小計'|trans }}</dt>
+                    <dd class="ec-totalBox__specTotal">{{ Order.subtotal|number_format }}円</dd>
+                </dl>
+                <dl class="ec-totalBox__spec">
+                    <dt>{{ '手数料'|trans }}</dt>
+                    <dd>{{ Order.charge|number_format }}円</dd>
+                </dl>
+                <dl class="ec-totalBox__spec">
+                    <dt>{{ '送料'|trans }}</dt>
+                    <dd>{{ Order.deliveryFeeTotal|number_format }}円</dd>
+                </dl>
+                {% if Order.taxable_discount < 0 %}
+                <dl class="ec-totalBox__spec">
+                    <dt>{{ '値引き'|trans }}</dt>
+                    <dd>{{ Order.taxable_discount|number_format }}円</dd>
+                </dl>
+                {% endif %}
+                <div class="ec-totalBox__total">{{ '合計'|trans }}<span class="ec-totalBox__price">{{ Order.taxable_total|number_format }}円</span><span class="ec-totalBox__taxLabel">{{ '税込'|trans }}</span></div>
+                {% for rate, total in Order.taxable_total_by_tax_rate %}
+                    <dl class="ec-totalBox__taxRate">
+                        <dt>{{ '税率 %rate% %対象'|trans({ '%rate%': rate }) }}</dt>
+                        <dd>{{ total|number_format }}円</dd>
+                    </dl>
+                {% endfor %}
+                {% for item in Order.tax_free_discount_items %}
+                    {% if loop.first %}<div class="ec-totalBox__total"></div>{% endif %}
+                    <dl class="ec-totalBox__spec">
+                        <dt>{{ item.product_name }}</dt>
+                        <dd>{{ item.total_price|number_format }}円</dd>
+                    </dl>
+                {% endfor %}
+                <div class="ec-totalBox__paymentTotal">{{ 'お支払い合計'|trans }}<span class="ec-totalBox__price">{{ Order.payment_total|number_format }}円</span><span class="ec-totalBox__taxLabel">{{ '税込'|trans }}</span></div>
+                {% if BaseInfo.isOptionPoint and Order.Customer is not null %}
+                <div class="ec-totalBox__pointBlock">
+                    <dl class="ec-totalBox__spec">
+                        <dt>{{ 'ご利用ポイント'|trans }}</dt>
+                        <dd>{{ Order.UsePoint|number_format }} pt</dd>
+                    </dl>
+                    <dl class="ec-totalBox__spec">
+                        <dt><span class="ec-font-bold">{{ '加算ポイント'|trans }}</span></dt>
+                        <dd><span class="ec-font-bold">{{ Order.AddPoint|number_format }} pt</span></dd>
+                    </dl>
+                </div>
+                {% endif %}
+                <div class="ec-totalBox__btn">
+                    <button type="submit" class="btn__action btn__size-l btn">{{ '注文する'|trans }}</button>
+                    <a href="{{ url('shopping') }}" class="btn__cancel btn__size-l btn mt8">{{ 'ご注文手続きに戻る'|trans }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+			</div>
+		</div>
+	</div>
+</main>
+
+{% endblock %}

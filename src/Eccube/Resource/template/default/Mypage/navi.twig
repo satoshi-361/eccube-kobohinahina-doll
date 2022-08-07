@@ -1,0 +1,37 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+<div class="ec-navlistRole">
+    <ul class="c-tab">
+        <li{% if mypageno|default('') == 'index' %} class="is-current"{% endif %}>
+            <a href="{{ url('mypage') }}">{{ 'ご注文履歴'|trans }}</a>
+        </li>
+        <li{% if mypageno|default('') == 'favorite' %} class="is-current"{% endif %}>
+            <a href="{{ url('mypage_favorite') }}">{{ 'お気に入り一覧'|trans }}</a>
+        </li>
+        <li{% if mypageno|default('') == 'change' %} class="is-current"{% endif %}>
+            <a href="{{ url('mypage_change') }}">{{ '会員情報編集'|trans }}</a>
+        </li>
+        <li{% if mypageno|default('') == 'delivery' %} class="is-current"{% endif %}>
+            <a href="{{ url('mypage_delivery') }}">{{ 'お届け先一覧'|trans }}</a>
+        </li>
+        <li{% if mypageno|default('') == 'withdraw' %} class="is-current"{% endif %}>
+            <a href="{{ url('mypage_withdraw') }}">{{ '退会手続き'|trans }}</a>
+        </li>
+    </ul>
+</div>
+
+<div class="ec-welcomeMsg">
+    <p>{{ 'ようこそ%last_name% %first_name%さん'|trans({ '%last_name%': app.user.name01, '%first_name%': app.user.name02 }) }}</p>
+    {% if BaseInfo.option_point %}
+        <p>{{ '現在の所持ポイントは %point%pt です。'|trans({ '%point%': app.user.point|number_format}) }}</p>
+    {% endif %}
+</div>
+

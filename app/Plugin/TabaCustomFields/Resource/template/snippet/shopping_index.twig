@@ -1,0 +1,36 @@
+<script>
+    $(function () {
+        $('#plate_name_area').append($('#tabacustomfields_shopping_index'));
+    });
+</script>
+<div id="tabacustomfields_shopping_index">
+							<div class="p-shopping1__table">
+    {% for f in form if f.vars.eccube_form_options.auto_render and f.vars.name matches '[^plg_custom_field*]' %}
+
+        {% if f.vars.eccube_form_options.form_theme %}
+            {% form_theme f f.vars.eccube_form_options.form_theme %}
+            {{ form_row(f) }}
+        {% else %}
+								<dl>
+            <dt>{{ form_label(f) }}</dt>
+
+        {% set FORM = form_widget(f) %}
+        {% if  FORM matches '{^.*(textarea|text).*}' %}
+        <dd>
+        {% elseif FORM matches '{^.*radio.*}' %}
+        <dd>
+        {% elseif FORM matches '{^.*select.*}' %}
+        <dd>
+        {% elseif FORM matches '{^.*checkbox.*}' %}
+        <dd>
+        {% else %}
+        <dd>
+        {% endif %}
+            {{ FORM|raw }}
+            {{ form_errors(f) }}
+        </dd>
+        {% endif %}
+    </dl>
+    {% endfor %}
+</div></div>
+
