@@ -279,10 +279,8 @@ var aaaaa = cityss.slice( 0, -1 ) ;
 
 
  $("#search_bt").click( function() {
-
   var rc = $("input[name='radio_cat']:checked").val();
   $('#p02').val(rc);
-
  })
 
 
@@ -294,42 +292,101 @@ var aaaaa = cityss.slice( 0, -1 ) ;
     <!-- Modal content -->
     <div class="modal-content">
         <span class="close c-form_s_delete" id="close-popup-form"><img src="/assets/image/common/icon_delete.png" alt=""></span>
+        
+        <p class="c-form_s_name">シリーズから選ぶ<span class="c-form_s_name_sub">※1つのみ選択可能</span></p>
+        <div class="c-form_s">            
+            <div class="c-form_s_cat cat_img">
+                <div class="cat_ttl">
+                    <p class="cat_ttl_name">シリーズ</p>
+                </div>
+                <ul class="cat_list">
+                    <li>
+                        <input type="radio" id="木目" class="radio_img" name="radio_cat" value="32">
+                        <label class="label_img" for="木目">
+                            <img src="{{ asset('assets/img/search/木目.jpg'|no_image_product) }}" alt="木目">
+                            <p class="name_img">木目</p>
+                        </label>
+                    </li>
+                    <li>
+                        <input type="radio" id="塗り" class="radio_img" name="radio_cat" value="33">
+                        <label class="label_img" for="塗り">
+                            <img src="{{ asset('assets/img/search/塗り.jpg'|no_image_product) }}" alt="塗り">
+                            <p class="name_img">塗り</p>
+                        </label>
+                    </li>
+                    <li>
+                        <input type="radio" id="シンプル" class="radio_img" name="radio_cat" value="34">
+                        <label class="label_img" for="シンプル">
+                            <img src="{{ asset('assets/img/search/シンプル.jpg'|no_image_product) }}" alt="シンプル">
+                            <p class="name_img">シンプル</p>
+                        </label>
+                    </li>
+                    <li>
+                        <input type="radio" id="プレミアム" class="radio_img" name="radio_cat" value="35">
+                        <label class="label_img" for="プレミアム">
+                            <img src="{{ asset('assets/img/search/プレミアム.jpg'|no_image_product) }}" alt="プレミアム">
+                            <p class="name_img">プレミアム</p>
+                        </label>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
         <p class="c-form_s_name">カテゴリから選ぶ<span class="c-form_s_name_sub">※1つのみ選択可能</span></p>
-
           <div class="c-form_s">
-
             <div class="c-form_s_cat">
                 <div class="cat_ttl">
                     <p class="cat_ttl_name">商品カテゴリ</p>
                 </div>
                 <ul class="cat_list">
                     <li>
-                        <input type="radio" id="親王飾り" name="radio_cat" value="10">
-                        <label class="label_txt c-radio" for="親王飾り"> 親王飾り</label>
+                        <input type="radio" id="親王飾り" class="radio_img" name="radio_cat" value="10">
+                        <label class="label_img" for="親王飾り">
+                            <img src="{{ asset('assets/img/search/親王飾り.jpg'|no_image_product) }}" alt="親王飾り">
+                            <p class="name_img">親王飾り</p>
+                        </label>
                     </li>
                     <li>
-                        <input type="radio" id="五人飾り" name="radio_cat" value="11">
-                        <label class="label_txt c-radio" for="五人飾り">五人飾り</label>
+                        <input type="radio" id="五人飾り" class="radio_img" name="radio_cat" value="11">
+                        <label class="label_img" for="五人飾り">
+                            <img src="{{ asset('assets/img/search/五人飾り.jpg'|no_image_product) }}" alt="五人飾り">
+                            <p class="name_img">五人飾り</p>
+                        </label>
                     </li>
                     <li>
-                        <input type="radio" id="十人飾り" name="radio_cat" value="12">
-                        <label class="label_txt c-radio" for="十人飾り">十人飾り</label>
+                        <input type="radio" id="十人飾り" class="radio_img" name="radio_cat" value="12">
+                        <label class="label_img" for="十人飾り">
+                            <img src="{{ asset('assets/img/search/十人飾り.jpg'|no_image_product) }}" alt="十人飾り">
+                            <p class="name_img">十人飾り</p>
+                        </label>
                     </li>
                     <li>
-                        <input type="radio" id="十五人・段飾り" name="radio_cat" value="17">
-                        <label class="label_txt c-radio" for="十五人・段飾り">十五人・段飾り</label>
+                        <input type="radio" id="十五人・段飾り" class="radio_img" name="radio_cat" value="17">
+                        <label class="label_img" for="十五人・段飾り">
+                            <img src="{{ asset('assets/img/search/十五人・段飾り.jpg'|no_image_product) }}" alt="十五人・段飾り">
+                            <p class="name_img">十五人・段飾り</p>
+                        </label>
                     </li>
                     <li>
-                        <input type="radio" id="収納飾り" name="radio_cat" value="14">
-                        <label class="label_txt c-radio" for="収納飾り">収納飾り</label>
+                        <input type="radio" id="収納飾り" class="radio_img" name="radio_cat" value="14">
+                        <label class="label_img" for="収納飾り">
+                            <img src="{{ asset('assets/img/search/収納飾り.jpg'|no_image_product) }}" alt="収納飾り">
+                            <p class="name_img">収納飾り</p>
+                        </label>
                     </li>
                     <li>
-                        <input type="radio" id="ケース飾り" name="radio_cat" value="15">
-                        <label class="label_txt c-radio" for="ケース飾り">ケース飾り</label>
+                        <input type="radio" id="ケース付飾り" class="radio_img" name="radio_cat" value="15">
+                        <label class="label_img" for="ケース付飾り">
+                            <img src="{{ asset('assets/img/search/ケース付飾り.jpg'|no_image_product) }}" alt="ケース付飾り">
+                            <p class="name_img">ケース付飾り</p>
+                        </label>
                     </li>
                     <li>
-                        <input type="radio" id="立雛" name="radio_cat" value="13">
-                        <label class="label_txt c-radio" for="立雛">立雛</label>
+                        <input type="radio" id="立雛" class="radio_img" name="radio_cat" value="13">
+                        <label class="label_img" for="立雛">
+                            <img src="{{ asset('assets/img/search/立雛.jpg'|no_image_product) }}" alt="立雛">
+                            <p class="name_img">立雛</p>
+                        </label>
                     </li>
                 </ul>
             </div><!-- End form_s_cat-->
@@ -343,12 +400,12 @@ var aaaaa = cityss.slice( 0, -1 ) ;
                         <label class="label_txt c-radio" for="親王単体"> 親王単体</label>
                     </li>
                     <li>
-                        <input type="radio" id="その他のお人形" name="radio_cat" value="22">
-                        <label class="label_txt c-radio" for="その他のお人形">その他のお人形</label>
+                        <input type="radio" id="三人官女・五人囃子・その他" name="radio_cat" value="22">
+                        <label class="label_txt c-radio" for="三人官女・五人囃子・その他">三人官女・五人囃子・その他</label>
                     </li>
                     <li>
-                        <input type="radio" id="つるし飾り・几帳" name="radio_cat" value="16">
-                        <label class="label_txt c-radio" for="つるし飾り・几帳">つるし飾り・几帳</label>
+                        <input type="radio" id="つるし飾り・その他" name="radio_cat" value="16">
+                        <label class="label_txt c-radio" for="つるし飾り・その他">つるし飾り・その他</label>
                     </li>
                     <li>
                         <input type="radio" id="飾り台" name="radio_cat" value="24">
@@ -476,17 +533,18 @@ var aaaaa = cityss.slice( 0, -1 ) ;
                 <div class="c-btn01">
                     <div class="c-btn01_out">
 
-<form method="get" class="searchform" action="./list" id="popup-form">
-<input type="hidden" id="p02" name="category_id">
-<input id="p01" type="search" name="name"  class="search-name" placeholder="キーワードを入力" style="display:none"  />
-<button id="search_bt" class="button_s" type="submit">この条件で検索する</button>
+                        <form method="get" class="searchform" action="./list" id="popup-form">
+                        <input type="hidden" id="p02" name="category_id">
+                        <input id="p01" type="search" name="name"  class="search-name" placeholder="キーワードを入力" style="display:none"  />
+                        <button id="search_bt" class="button_s" type="submit">この条件で検索する</button>
                         <!-- <a href="#">この条件で検索する</a> -->
                     </div>
                 </div><!-- End c-btn01-->
                 <div class="btn_clear">
                     <button class="reset_bt" type="reset" value="検索条件をクリア"><img src="/assets/image/common/icon_clear.png" alt="検索条件をクリア">検索条件をクリア</button>
                 </div>
-            </div></form>
+            </div>
+            </form>
         </div><!-- End c-form_s-->
     </div>
 </div>

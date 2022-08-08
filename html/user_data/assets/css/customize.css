@@ -1,1 +1,5 @@
 /* カスタマイズ用CSS */
+
+.c-form_s_cat .cat_list li .radio_img:checked+.label_img {
+    opacity: 0.5;
+}
